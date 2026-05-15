@@ -1,0 +1,7 @@
+<app-response-status-toolbar
+  [statusCode]="statusCode"
+  [selectedStatusButtonKey]="selectedStatusButtonKey()"
+  [selectedStatusButtonLabel]="selectedStatusButtonLabel()"
+  (statusSelectionChange)="emitStatusCode($event.statusCode)"
+  (customStatusCodeChange)="emitStatusCode($event)"
+/>

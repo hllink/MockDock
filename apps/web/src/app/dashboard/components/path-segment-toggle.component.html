@@ -1,0 +1,26 @@
+<section class="path-toggle">
+  <div class="route-actions">
+    <div class="segment-row" [attr.aria-label]="i18n.t('pathToggle.routePathSegments')">
+      @if (tokens().length === 0) {
+        <span class="root-chip">/</span>
+      } @else {
+        @for (token of tokens(); track token.index) {
+          <span class="segment-group">
+            <span class="slash">/</span>
+            <span
+              class="segment-chip"
+              [class.segment-wildcard]="token.kind !== 'literal'"
+              [attr.aria-label]="token.label"
+            >
+              {{ token.value }}
+            </span>
+          </span>
+        }
+      }
+    </div>
+
+    <button type="button" class="copy-button" [disabled]="!copyValue()" (click)="copyPath.emit()">
+      {{ i18n.t("pathToggle.copyPath") }}
+    </button>
+  </div>
+</section>

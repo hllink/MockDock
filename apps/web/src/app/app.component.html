@@ -1,0 +1,18 @@
+<div class="app-shell">
+  @if (showEmptyState()) {
+    <app-ambient-state variant="empty" />
+  } @else {
+    <app-dashboard-page />
+  }
+
+  @if (overlayVisible()) {
+    <div class="overlay-host" [class.is-fading]="overlayFading()">
+      <app-ambient-state
+        mode="overlay"
+        [variant]="overlayVariant()"
+      />
+    </div>
+  }
+
+  <app-language-switcher />
+</div>

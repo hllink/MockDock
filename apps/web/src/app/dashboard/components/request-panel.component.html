@@ -1,0 +1,244 @@
+<section class="request-panel">
+  <header>
+    <div class="header-top-row">
+      <p class="eyebrow">{{ i18n.t("requestPanel.headingEyebrow") }}</p>
+      @if (store.selectedRouteView()) {
+        <button
+          type="button"
+          class="icon-button delete-route-icon-button"
+          [attr.aria-label]="i18n.t('requestPanel.deleteRoute')"
+          [attr.title]="i18n.t('requestPanel.deleteRoute')"
+          (click)="openDeleteConfirm()"
+        >
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M6 1.75h4a1 1 0 0 1 1 1V3h2.25a.75.75 0 0 1 0 1.5h-.6l-.55 8.02A1.5 1.5 0 0 1 10.6 14H5.4a1.5 1.5 0 0 1-1.5-1.48L3.35 4.5h-.6a.75.75 0 0 1 0-1.5H5v-.25a1 1 0 0 1 1-1Zm1 .5a.5.5 0 0 0-.5.5V3h3v-.25a.5.5 0 0 0-.5-.5H7Zm-1.6 10.25h5.2l.53-8H4.87l.53 8Zm1.35-6.25a.75.75 0 0 1 .75.75v3a.75.75 0 0 1-1.5 0V7a.75.75 0 0 1 .75-.75Zm2.5 0A.75.75 0 0 1 10 7v3a.75.75 0 0 1-1.5 0V7a.75.75 0 0 1 .75-.75Z" />
+          </svg>
+        </button>
+      }
+    </div>
+    <div class="heading-row">
+      <div class="heading-copy-group">
+        @if (store.selectedRouteView()) {
+          <button
+            type="button"
+            class="copy-route-button"
+            [disabled]="!canCopyRequestPath()"
+            [attr.aria-label]="i18n.t('requestPanel.copyFullRouteUrl')"
+            [attr.title]="i18n.t('requestPanel.copyFullRouteUrl')"
+            (click)="copyRequestUrl()"
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M5 2.5A1.5 1.5 0 0 1 6.5 1h6A1.5 1.5 0 0 1 14 2.5v8A1.5 1.5 0 0 1 12.5 12h-6A1.5 1.5 0 0 1 5 10.5v-8Zm1.5-.5a.5.5 0 0 0-.5.5v8a.5.5 0 0 0 .5.5h6a.5.5 0 0 0 .5-.5v-8a.5.5 0 0 0-.5-.5h-6Z" />
+              <path d="M2.5 4A1.5 1.5 0 0 0 1 5.5v8A1.5 1.5 0 0 0 2.5 15h6A1.5 1.5 0 0 0 10 13.5V13H9v.5a.5.5 0 0 1-.5.5h-6a.5.5 0 0 1-.5-.5v-8a.5.5 0 0 1 .5-.5H3V4h-.5Z" />
+            </svg>
+          </button>
+        }
+        <h2>
+          @if (selectedRouteMethod(); as method) {
+            <span class="route-title-method http-method-tone" [attr.data-method]="method">{{ method }}</span>
+          }
+          {{ selectedRoutePattern() }}
+        </h2>
+      </div>
+      @if (store.selectedRouteView()) {
+        <span class="hit-pill">{{ hitCountLabel(selectedRouteHitCount()) }}</span>
+      }
+    </div>
+    @if (store.selectedRouteView()) {
+      <p class="route-meta">{{ memberCountLabel() }}</p>
+    }
+    @if (copyToastVisible()) {
+      <p class="copy-toast" role="status" aria-live="polite">{{ i18n.t("requestPanel.routeUrlCopied") }}</p>
+    }
+  </header>
+
+  <div class="request-scroll-sections">
+    @if (store.selectedRouteView()) {
+      <section class="variant-list" [attr.aria-label]="i18n.t('requestPanel.queryVariantsAria')">
+        <p class="variant-heading">{{ i18n.t("requestPanel.queryVariants") }}</p>
+        <div class="variant-rows">
+          @for (variant of variantOptions(); track variant.selectionKey) {
+            <div class="variant-row-shell" [class.is-active]="selectedVariantKey() === variant.selectionKey">
+              <button
+                type="button"
+                class="variant-row"
+                (click)="selectVariant(variant.selectionKey)"
+              >
+                <span class="variant-label">{{ variant.queryDisplay }}</span>
+                <span class="variant-meta">{{ variantMeta(variant.saved, variant.requestCount) }}</span>
+              </button>
+              @if (canDeleteVariant(variant.variantId, variant.selectionKey)) {
+                <button
+                  type="button"
+                  class="variant-delete-button"
+                  [attr.aria-label]="i18n.t('requestPanel.deleteQueryVariant')"
+                  [attr.title]="i18n.t('requestPanel.deleteQueryVariant')"
+                  (click)="openDeleteVariantConfirm(variant.variantId, $event)"
+                >
+                  ×
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    @if (recentRequests().length > 0) {
+      <section class="hit-history" [attr.aria-label]="i18n.t('requestPanel.recentHitHistoryAria')">
+        <div class="section-heading-row">
+          <p class="variant-heading">{{ i18n.t("requestPanel.recentHitHistory") }}</p>
+          <span class="history-count">{{ requestCountLabel(recentRequests().length) }}</span>
+        </div>
+        <div class="history-list">
+          @for (request of recentRequests(); track request.id) {
+            <button
+              type="button"
+              class="history-row"
+              (click)="openHistoryRequest(request)"
+            >
+              <div class="history-row-main">
+                <div class="history-path-row">
+                  <span class="history-method http-method-pill" [attr.data-method]="request.method">{{ request.method }}</span>
+                  <span class="history-path">{{ request.rawPath }}</span>
+                </div>
+                <span class="history-time">{{ formatTimestamp(request.createdAt) }}</span>
+              </div>
+              <span class="history-status">{{ request.responseStatusCode }}</span>
+            </button>
+          }
+        </div>
+      </section>
+    } @else {
+      <p class="empty">{{ emptyStateMessage() }}</p>
+    }
+  </div>
+
+  @if (store.selectedRouteView()) {
+    <section class="traffic-summary" [attr.aria-label]="i18n.t('requestPanel.trafficSummaryAria')">
+      <div class="summary-card">
+        <span class="summary-label">{{ i18n.t("requestPanel.totalHits") }}</span>
+        <strong class="summary-value">{{ selectedRouteHitCount() }}</strong>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">{{ i18n.t("requestPanel.lastCaptured") }}</span>
+        <strong class="summary-value">{{ latestCapturedAt() }}</strong>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">{{ i18n.t("requestPanel.latestPath") }}</span>
+        <strong class="summary-value">{{ latestCapturedPath() }}</strong>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">{{ i18n.t("requestPanel.latestStatus") }}</span>
+        <strong class="summary-value">{{ latestResponseStatus() }}</strong>
+      </div>
+    </section>
+  }
+</section>
+
+@if (deleteConfirmOpen()) {
+  <div class="confirm-modal-backdrop" (click)="closeDeleteConfirm()">
+    <section
+      class="confirm-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-route-title"
+      (click)="$event.stopPropagation()"
+    >
+      <p class="eyebrow">{{ i18n.t("requestPanel.deleteRoute") }}</p>
+      <h3 id="delete-route-title">{{ i18n.t("requestPanel.deleteRouteTitle") }}</h3>
+      <p class="confirm-copy">{{ i18n.t("requestPanel.deleteRouteDescription") }}</p>
+      <div class="confirm-actions">
+        <button type="button" class="confirm-button cancel-button" (click)="closeDeleteConfirm()">
+          {{ i18n.t("common.cancel") }}
+        </button>
+        <button type="button" class="confirm-button delete-button" (click)="deleteSelectedRoute()">
+          {{ i18n.t("requestPanel.deleteRoute") }}
+        </button>
+      </div>
+    </section>
+  </div>
+}
+
+@if (deleteVariantConfirmOpen()) {
+  <div class="confirm-modal-backdrop" (click)="closeDeleteVariantConfirm()">
+    <section
+      class="confirm-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-variant-title"
+      (click)="$event.stopPropagation()"
+    >
+      <p class="eyebrow">{{ i18n.t("requestPanel.deleteQueryVariant") }}</p>
+      <h3 id="delete-variant-title">{{ i18n.t("requestPanel.deleteQueryVariantTitle") }}</h3>
+      <p class="confirm-copy">{{ i18n.t("requestPanel.deleteQueryVariantDescription") }}</p>
+      <div class="confirm-actions">
+        <button type="button" class="confirm-button cancel-button" (click)="closeDeleteVariantConfirm()">
+          {{ i18n.t("common.cancel") }}
+        </button>
+        <button type="button" class="confirm-button delete-button" (click)="deleteSelectedVariant()">
+          {{ i18n.t("requestPanel.deleteQueryVariant") }}
+        </button>
+      </div>
+    </section>
+  </div>
+}
+
+@if (selectedHistoryRequest(); as request) {
+  <div class="confirm-modal-backdrop" (click)="closeHistoryRequest()">
+    <section
+      class="confirm-modal history-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="history-request-title"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="section-heading-row">
+        <div>
+          <p class="eyebrow">{{ i18n.t("requestPanel.capturedHit") }}</p>
+          <h3 id="history-request-title" class="history-request-title">
+            <span class="http-method-pill" [attr.data-method]="request.method">{{ request.method }}</span>
+            <span>{{ request.rawPath }}</span>
+          </h3>
+        </div>
+        <button
+          type="button"
+          class="icon-button modal-close-button"
+          [attr.aria-label]="i18n.t('requestPanel.closeHitDetails')"
+          [attr.title]="i18n.t('common.close')"
+          (click)="closeHistoryRequest()"
+        >
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M3.22 3.22a.75.75 0 0 1 1.06 0L8 6.94l3.72-3.72a.75.75 0 1 1 1.06 1.06L9.06 8l3.72 3.72a.75.75 0 1 1-1.06 1.06L8 9.06l-3.72 3.72a.75.75 0 1 1-1.06-1.06L6.94 8 3.22 4.28a.75.75 0 0 1 0-1.06Z" />
+          </svg>
+        </button>
+      </div>
+
+      <section class="traffic-summary history-summary">
+        <div class="summary-card">
+          <span class="summary-label">{{ i18n.t("requestPanel.returnedStatus") }}</span>
+          <strong class="summary-value">{{ request.responseStatusCode }}</strong>
+        </div>
+        <div class="summary-card">
+          <span class="summary-label">{{ i18n.t("requestPanel.capturedAt") }}</span>
+          <strong class="summary-value">{{ formatTimestamp(request.createdAt) }}</strong>
+        </div>
+      </section>
+
+      <section class="history-detail-section">
+        <p class="variant-heading">{{ i18n.t("requestPanel.requestHeaders") }}</p>
+        <pre class="history-detail-block">{{ formatJson(request.headers) || i18n.t("requestPanel.noHeadersCaptured") }}</pre>
+      </section>
+
+      <section class="history-detail-section">
+        <p class="variant-heading">{{ i18n.t("requestPanel.requestBody") }}</p>
+        <pre class="history-detail-block">{{ formatJson(request.body) || i18n.t("requestPanel.noRequestBodyCaptured") }}</pre>
+      </section>
+
+      <section class="history-detail-section">
+        <p class="variant-heading">{{ i18n.t("requestPanel.returnedPayload") }}</p>
+        <pre class="history-detail-block">{{ formatJson(request.responseBody) || i18n.t("requestPanel.noResponseBodyCaptured") }}</pre>
+      </section>
+    </section>
+  </div>
+}

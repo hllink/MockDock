@@ -1,0 +1,26 @@
+{
+  "name": "@mockdock/shared",
+  "version": "0.0.2",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "echo \"No tests for @mockdock/shared\""
+  },
+  "devDependencies": {
+    "typescript": "5.8.3"
+  }
+}

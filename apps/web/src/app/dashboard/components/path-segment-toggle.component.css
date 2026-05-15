@@ -1,0 +1,82 @@
+:host {
+  display: block;
+}
+
+.path-toggle {
+  min-width: 0;
+}
+
+.route-actions {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+}
+
+.segment-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.segment-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.slash,
+.root-chip {
+  color: #b7a7d8;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.segment-chip,
+.root-chip {
+  padding: 0.46rem 0.68rem;
+  border: 1px solid rgba(163, 124, 235, 0.26);
+  border-radius: 999px;
+  background: rgba(34, 18, 58, 0.86);
+  color: #f6f0ff;
+  font: inherit;
+}
+
+.segment-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+}
+
+.segment-wildcard {
+  border-color: rgba(247, 128, 231, 0.62);
+  background: linear-gradient(135deg, rgba(112, 56, 190, 0.96), rgba(214, 92, 191, 0.9));
+  color: #fff8ff;
+}
+
+.copy-button {
+  flex: none;
+  padding: 0.46rem 0.72rem;
+  border: 1px solid rgba(163, 124, 235, 0.3);
+  border-radius: 999px;
+  background: rgba(24, 13, 40, 0.94);
+  color: #e5d6ff;
+  font: inherit;
+  font-size: 0.88rem;
+  line-height: 1.1;
+  cursor: pointer;
+}
+
+.copy-button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+@media (max-width: 720px) {
+  .route-actions {
+    flex-direction: column;
+  }
+}

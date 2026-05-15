@@ -1,0 +1,49 @@
+services:
+  server:
+    image: ${DOCKER_IMAGE_PREFIX:-mockdock}-server:${MOCKDOCK_VERSION:-latest}
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+      args:
+        MOCKDOCK_VERSION: ${MOCKDOCK_VERSION:-latest}
+    ports:
+      - "52052:52052"
+    volumes:
+      - ./data:/app/data
+    environment:
+      MOCKDOCK_PORT: "52052"
+      MOCKDOCK_HOST: "0.0.0.0"
+      MOCKDOCK_DATABASE_PATH: /app/data/mockdock.sqlite
+
+  web:
+    image: ${DOCKER_IMAGE_PREFIX:-mockdock}-web:${MOCKDOCK_VERSION:-latest}
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        MOCKDOCK_VERSION: ${MOCKDOCK_VERSION:-latest}
+    ports:
+      - "52000:80"
+    environment:
+      BACKEND_URL: ${BACKEND_URL:-http://server:52052}
+    depends_on:
+      - server
+
+  mockdock:
+    profiles: ["all-in-one"]
+    image: ${DOCKER_IMAGE_PREFIX:-mockdock}:${MOCKDOCK_VERSION:-latest}
+    build:
+      context: .
+      dockerfile: Dockerfile.combined
+      args:
+        MOCKDOCK_VERSION: ${MOCKDOCK_VERSION:-latest}
+    ports:
+      - "52000:80"
+      - "52052:52052"
+    volumes:
+      - ./data:/app/data
+    environment:
+      MOCKDOCK_PORT: "52052"
+      MOCKDOCK_HOST: "0.0.0.0"
+      MOCKDOCK_DATABASE_PATH: /app/data/mockdock.sqlite
+      BACKEND_URL: ${BACKEND_URL:-http://127.0.0.1:52052}

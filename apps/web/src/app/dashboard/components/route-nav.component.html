@@ -1,0 +1,420 @@
+<header class="nav-header">
+  <p class="eyebrow">{{ i18n.t("routeNav.headingEyebrow") }}</p>
+  <label class="select-label" for="route-sort">{{ i18n.t("routeNav.sortRoutes") }}</label>
+  <select
+    id="route-sort"
+    [value]="store.routeSort()"
+    (change)="store.setRouteSort($any($event.target).value)"
+  >
+    <option value="recent">{{ i18n.t("routeNav.sortRecent") }}</option>
+    <option value="name">{{ i18n.t("routeNav.sortName") }}</option>
+    <option value="hits">{{ i18n.t("routeNav.sortHits") }}</option>
+  </select>
+  @if (store.bulkDeleteMode()) {
+    <div class="bulk-delete-bar">
+      <span>{{ i18n.t("routeNav.selectedRoutes", { count: i18n.formatNumber(bulkSelectedCount()) }) }}</span>
+      <button type="button" class="bulk-action secondary" (click)="cancelBulkDeleteMode()">
+        {{ i18n.t("common.cancel") }}
+      </button>
+      <button
+        type="button"
+        class="bulk-action danger"
+        [disabled]="bulkSelectedCount() === 0"
+        (click)="openBulkDeleteConfirm()"
+      >
+        {{ i18n.t("routeNav.deleteSelected") }}
+      </button>
+    </div>
+  } @else {
+    <button type="button" class="bulk-mode-button" (click)="startBulkDeleteMode()">
+      {{ i18n.t("routeNav.bulkDelete") }}
+    </button>
+  }
+</header>
+
+<div class="workspace-tree" [attr.aria-label]="i18n.t('routeNav.workspaceTreeAria')">
+  @for (group of store.workspaceGroups(); track group.workspaceId) {
+    <section
+      class="workspace-group"
+      [class.is-expanded]="group.expanded"
+      [class.is-drop-target]="dropWorkspaceId() === group.workspaceId"
+      [class.is-workspace-drop-target]="workspaceDropTargetId() === group.workspaceId"
+      (dragover)="handleWorkspaceDragOver($event, group.workspaceId)"
+      (dragleave)="clearWorkspaceDropTarget($event, group.workspaceId)"
+      (drop)="handleWorkspaceDrop($event, group.workspaceId)"
+    >
+      <div class="workspace-row">
+        <button
+          class="workspace-drag-handle workspace-icon-button"
+          type="button"
+          draggable="true"
+          [attr.aria-label]="i18n.t('routeNav.dragWorkspace')"
+          [attr.title]="i18n.t('routeNav.dragWorkspace')"
+          (dragstart)="handleWorkspaceDragStart($event, group.workspaceId)"
+          (dragend)="handleWorkspaceDragEnd()"
+        >
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <circle cx="5" cy="4" r="1.1" />
+            <circle cx="11" cy="4" r="1.1" />
+            <circle cx="5" cy="8" r="1.1" />
+            <circle cx="11" cy="8" r="1.1" />
+            <circle cx="5" cy="12" r="1.1" />
+            <circle cx="11" cy="12" r="1.1" />
+          </svg>
+        </button>
+
+        <button
+          class="workspace-toggle"
+          type="button"
+          [attr.aria-expanded]="group.expanded"
+          [attr.aria-label]="group.expanded ? i18n.t('routeNav.collapseWorkspace') : i18n.t('routeNav.expandWorkspace')"
+          (click)="toggleWorkspace(group.workspaceId)"
+        >
+          {{ group.expanded ? "-" : "+" }}
+        </button>
+
+        @if (editingWorkspaceId() === group.workspaceId) {
+          <form class="workspace-rename-form" (submit)="submitWorkspaceRename($event, group.workspaceId)">
+            <input
+              class="workspace-rename-input"
+              type="text"
+              [value]="workspaceRenameDraft()"
+              [disabled]="renamingWorkspaceId() === group.workspaceId"
+              (input)="updateWorkspaceRenameDraft($event)"
+              (keydown.escape)="cancelWorkspaceRename()"
+            />
+          </form>
+        } @else {
+          <button
+            class="workspace-summary"
+            type="button"
+            [class.is-active]="store.activeWorkspaceId() === group.workspaceId"
+            (click)="store.selectWorkspace(group.workspaceId)"
+          >
+            <span class="workspace-slug">{{ group.slug }}</span>
+            @if (workspaceHasNewRoutes(group)) {
+              <span class="workspace-alert-dot" aria-hidden="true"></span>
+            }
+          </button>
+        }
+
+        <span class="workspace-count" [attr.aria-label]="routeCountLabel(group.routeCount)">
+          {{ group.routeCount }}
+        </span>
+
+        <button
+          class="workspace-add-action workspace-icon-button"
+          type="button"
+          [attr.aria-label]="i18n.t('routeNav.addRoute')"
+          [attr.title]="i18n.t('routeNav.addRoute')"
+          [disabled]="renamingWorkspaceId() !== null"
+          (click)="openCreateRouteModal(group)"
+        >
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M7.2 2.2h1.6v4h4v1.6h-4v4H7.2v-4h-4V6.2h4z" />
+          </svg>
+        </button>
+
+        <button
+          class="workspace-rename-action workspace-icon-button"
+          type="button"
+          [attr.aria-label]="i18n.t('routeNav.renameWorkspace')"
+          [attr.title]="i18n.t('routeNav.renameWorkspace')"
+          [disabled]="renamingWorkspaceId() !== null"
+          (click)="startWorkspaceRename(group)"
+        >
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path
+              d="M11.9 1.6a1.5 1.5 0 0 1 2.1 2.1l-7.7 7.7-3 .8.8-3 7.8-7.6Zm-7 8.1-.4 1.4 1.4-.4 6.9-6.9-1-1-6.9 6.9Z"
+            />
+          </svg>
+        </button>
+
+        <button
+          class="workspace-delete-action workspace-icon-button"
+          type="button"
+          [attr.aria-label]="i18n.t('routeNav.deleteWorkspace')"
+          [attr.title]="i18n.t('routeNav.deleteWorkspace')"
+          [disabled]="renamingWorkspaceId() !== null"
+          (click)="openWorkspaceDeleteConfirm(group)"
+        >
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M6 1.75h4a1 1 0 0 1 1 1V3h2.25a.75.75 0 0 1 0 1.5h-.6l-.55 8.02A1.5 1.5 0 0 1 10.6 14H5.4a1.5 1.5 0 0 1-1.5-1.48L3.35 4.5h-.6a.75.75 0 0 1 0-1.5H5v-.25a1 1 0 0 1 1-1Zm1 .5a.5.5 0 0 0-.5.5V3h3v-.25a.5.5 0 0 0-.5-.5H7Zm-1.6 10.25h5.2l.53-8H4.87l.53 8Z" />
+          </svg>
+        </button>
+      </div>
+
+      @if (group.expanded) {
+        <ul class="workspace-route-list">
+          @for (route of group.routes; track route.routeId) {
+            <li class="route-list-item" [class.is-bulk-mode]="store.bulkDeleteMode()">
+              @if (store.bulkDeleteMode()) {
+                <input
+                  class="route-bulk-checkbox"
+                  type="checkbox"
+                  [checked]="routeSelectedForBulkDelete(route.routeId)"
+                  [attr.aria-label]="i18n.t('routeNav.selectRouteForDelete')"
+                  (click)="toggleBulkRoute(route.routeId, $event)"
+                />
+              }
+              <button
+                class="route-row"
+                type="button"
+                [draggable]="!store.bulkDeleteMode()"
+                [class.is-active]="store.selectedRouteId() === route.routeId"
+                [class.is-new]="isRouteNew(route.routeId)"
+                [attr.title]="route.pattern"
+                (click)="selectOrToggleRoute(route.routeId)"
+                (dragstart)="handleRouteDragStart($event, route.routeId)"
+                (dragend)="handleRouteDragEnd()"
+              >
+                <span class="route-row-main">
+                  <span class="route-method-badge http-method-pill" [attr.data-method]="route.method">{{ route.method }}</span>
+                  <span class="route-relative-path">{{ routePathLabel(route) }}</span>
+                </span>
+                <span class="route-row-meta">
+                  @if (isRouteNew(route.routeId)) {
+                    <span class="route-new-dot" aria-hidden="true"></span>
+                  }
+                  <span class="route-hit-count">{{ routeHitLabel(route.routeId, route.hitCount) }}</span>
+                </span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  } @empty {
+    <section class="route-empty-state">
+      <button
+        type="button"
+        class="empty-help-button workspace-icon-button"
+        [attr.aria-label]="i18n.t('ambient.openHelpAria')"
+        [attr.title]="i18n.t('ambient.openHelpTitle')"
+        (click)="openHelpModal()"
+      >
+        <span aria-hidden="true">?</span>
+      </button>
+
+      <div class="route-empty route-empty-card">
+        <p class="route-empty-eyebrow">{{ i18n.t("routeNav.noWorkspaces") }}</p>
+        <h3>{{ i18n.t("routeNav.wakeDock") }}</h3>
+        <p>{{ i18n.t("routeNav.firstRequestHint", { examplePath: "/demo/hello", demo: "demo" }) }}</p>
+        <button type="button" class="route-empty-cta" (click)="openHelpModal()">
+          {{ i18n.t("routeNav.showQuickStart") }}
+        </button>
+      </div>
+    </section>
+  }
+</div>
+@if (createRouteWorkspace(); as routeCreationWorkspace) {
+  <div class="help-modal-backdrop" (click)="closeCreateRouteModal()">
+    <section
+      class="create-route-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="create-route-title"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="help-modal-header">
+        <div>
+          <p class="eyebrow help-modal-eyebrow">{{ i18n.t("routeNav.addRoute") }}</p>
+          <h2 id="create-route-title">{{ i18n.t("routeNav.newRouteFor", { workspace: routeCreationWorkspace.slug }) }}</h2>
+        </div>
+        <button
+          type="button"
+          class="help-modal-close"
+          [attr.aria-label]="i18n.t('routeNav.closeAddRouteModal')"
+          (click)="closeCreateRouteModal()"
+        >
+          ×
+        </button>
+      </div>
+
+      <form class="create-route-form" (submit)="submitCreateRoute($event)">
+        <label class="create-route-field">
+          <span>{{ i18n.t("routeNav.method") }}</span>
+          <select
+            class="http-method-select"
+            [attr.data-method]="createRouteMethod()"
+            [value]="createRouteMethod()"
+            [disabled]="creatingRouteWorkspaceId() === routeCreationWorkspace.workspaceId"
+            (change)="updateCreateRouteMethod($event)"
+          >
+            @for (method of availableMethods; track method) {
+              <option [value]="method">{{ method }}</option>
+            }
+          </select>
+        </label>
+
+        <label class="create-route-field">
+          <span class="create-route-label-row">
+            <span>{{ i18n.t("routeNav.context") }}</span>
+            <button
+              type="button"
+              class="wildcard-help-button"
+              [attr.aria-expanded]="wildcardHelpOpen()"
+              (click)="toggleWildcardHelp()"
+            >
+              {{ i18n.t("routeNav.wildcards") }}
+            </button>
+          </span>
+          <input
+            class="create-route-input"
+            type="text"
+            [attr.placeholder]="i18n.t('routeNav.routePlaceholder')"
+            [value]="createRouteContextDraft()"
+            [disabled]="creatingRouteWorkspaceId() === routeCreationWorkspace.workspaceId"
+            (input)="updateCreateRouteContextDraft($event)"
+            (keydown.escape)="closeCreateRouteModal()"
+          />
+        </label>
+
+        @if (wildcardHelpOpen()) {
+          <div class="wildcard-help-panel" [attr.aria-label]="i18n.t('routeNav.wildcardHelpAria')">
+            <p>{{ i18n.t("routeNav.wildcardSingleSegment", { single: "*" }) }}</p>
+            <p>{{ i18n.t("routeNav.wildcardTrailingSegments", { double: "**" }) }}</p>
+            <p>{{ i18n.t("routeNav.wildcardLastSegmentOnly", { double: "**" }) }}</p>
+          </div>
+        }
+
+        @if (createRouteError(); as createRouteError) {
+          <p class="create-route-error">{{ createRouteError }}</p>
+        }
+
+        <div class="create-route-actions">
+          <button
+            type="button"
+            class="create-route-cancel"
+            [disabled]="creatingRouteWorkspaceId() === routeCreationWorkspace.workspaceId"
+            (click)="closeCreateRouteModal()"
+          >
+            {{ i18n.t("common.cancel") }}
+          </button>
+          <button
+            type="submit"
+            class="create-route-submit"
+            [disabled]="creatingRouteWorkspaceId() === routeCreationWorkspace.workspaceId"
+          >
+            {{ creatingRouteWorkspaceId() === routeCreationWorkspace.workspaceId ? i18n.t("routeNav.adding") : i18n.t("routeNav.addRoute") }}
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+}
+@if (bulkDeleteConfirmOpen()) {
+  <div class="help-modal-backdrop" (click)="closeBulkDeleteConfirm()">
+    <section
+      class="delete-confirm-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="bulk-delete-title"
+      (click)="$event.stopPropagation()"
+    >
+      <p class="eyebrow">{{ i18n.t("routeNav.deleteSelected") }}</p>
+      <h2 id="bulk-delete-title">{{ i18n.t("routeNav.deleteSelectedTitle", { count: i18n.formatNumber(bulkSelectedCount()) }) }}</h2>
+      <p>{{ i18n.t("routeNav.deleteSelectedDescription") }}</p>
+      <div class="delete-confirm-actions">
+        <button type="button" class="delete-confirm-cancel" (click)="closeBulkDeleteConfirm()">
+          {{ i18n.t("common.cancel") }}
+        </button>
+        <button type="button" class="delete-confirm-danger" (click)="confirmBulkDelete()">
+          {{ i18n.t("routeNav.deleteSelected") }}
+        </button>
+      </div>
+    </section>
+  </div>
+}
+@if (workspaceDeleteTarget(); as deleteTarget) {
+  <div class="help-modal-backdrop" (click)="closeWorkspaceDeleteConfirm()">
+    <section
+      class="delete-confirm-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="workspace-delete-title"
+      (click)="$event.stopPropagation()"
+    >
+      <p class="eyebrow">{{ i18n.t("routeNav.deleteWorkspace") }}</p>
+      <h2 id="workspace-delete-title">{{ i18n.t("routeNav.deleteWorkspaceTitle", { workspace: deleteTarget.slug }) }}</h2>
+      <p>{{ i18n.t("routeNav.deleteWorkspaceDescription", { count: i18n.formatNumber(deleteTarget.routeCount) }) }}</p>
+      <div class="delete-confirm-actions">
+        <button type="button" class="delete-confirm-cancel" (click)="closeWorkspaceDeleteConfirm()">
+          {{ i18n.t("common.cancel") }}
+        </button>
+        <button type="button" class="delete-confirm-danger" (click)="confirmWorkspaceDelete()">
+          {{ i18n.t("routeNav.deleteWorkspace") }}
+        </button>
+      </div>
+    </section>
+  </div>
+}
+@if (helpModalOpen()) {
+  <div class="help-modal-backdrop" (click)="closeHelpModal()">
+    <section
+      class="help-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="mockdock-help-title"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="help-modal-header">
+        <div>
+          <p class="eyebrow help-modal-eyebrow">{{ i18n.t("ambient.quickStart") }}</p>
+          <h2 id="mockdock-help-title">{{ i18n.t("ambient.quickStartTitle") }}</h2>
+        </div>
+        <button
+          type="button"
+          class="help-modal-close"
+          [attr.aria-label]="i18n.t('ambient.closeHelpAria')"
+          (click)="closeHelpModal()"
+        >
+          ×
+        </button>
+      </div>
+
+      <div class="help-modal-grid">
+        <article class="help-card help-card-intro">
+          <span class="help-card-kicker">{{ i18n.t("ambient.firstStep") }}</span>
+          <p>{{ i18n.t("ambient.firstStepDescription") }}</p>
+          <ol>
+            <li>{{ i18n.t("ambient.chooseWorkspace", { acme: "acme", demo: "demo" }) }}</li>
+            <li>{{ i18n.t("ambient.useFirstSegment") }}</li>
+            <li>{{ i18n.t("ambient.sendRequestCreatesWorkspace") }}</li>
+          </ol>
+        </article>
+
+        <article class="help-card">
+          <span class="help-card-kicker">{{ i18n.t("ambient.starterAddress") }}</span>
+          <div class="starter-address">
+            <code>{{ starterRequestUrl() }}</code>
+            <button type="button" class="copy-address-button" (click)="copyStarterAddress()">
+              {{ addressCopied() ? i18n.t("common.copied") : i18n.t("common.copy") }}
+            </button>
+          </div>
+          <p class="help-card-note">{{ i18n.t("ambient.starterAddressNote", { demo: "demo" }) }}</p>
+        </article>
+
+        <article class="help-card help-card-example">
+          <span class="help-card-kicker">{{ i18n.t("ambient.readingUrl") }}</span>
+          <div class="url-legend">
+            <code>
+              <span class="url-part url-host">http://localhost:52052</span>/<span class="url-part url-workspace">acme</span>/<span class="url-part url-route">users</span>/<span class="url-part url-param">{{ '{' }}id{{ '}' }}</span>
+            </code>
+          </div>
+          <div class="legend-chips" [attr.aria-label]="i18n.t('ambient.urlLegendAria')">
+            <span class="legend-chip legend-chip-host">{{ i18n.t("ambient.host") }}</span>
+            <span class="legend-chip legend-chip-workspace">{{ i18n.t("ambient.workspace") }}</span>
+            <span class="legend-chip legend-chip-route">{{ i18n.t("ambient.route") }}</span>
+            <span class="legend-chip legend-chip-param">{{ i18n.t("ambient.param", { param: "param" }) }}</span>
+          </div>
+        </article>
+
+        <article class="help-card help-card-steps">
+          <span class="help-card-kicker">{{ i18n.t("ambient.howMockDockReadsIt") }}</span>
+          <p>{{ i18n.t("ambient.howMockDockReadsItDescription") }}</p>
+        </article>
+      </div>
+    </section>
+  </div>
+}

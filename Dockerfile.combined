@@ -1,0 +1,56 @@
+FROM node:22-alpine AS build
+
+ARG MOCKDOCK_VERSION=0.0.1
+
+WORKDIR /app
+RUN corepack enable
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json .nvmrc ./
+COPY apps/server/package.json apps/server/package.json
+COPY apps/web/package.json apps/web/package.json
+COPY packages/shared/package.json packages/shared/package.json
+COPY packages/route-inference/package.json packages/route-inference/package.json
+
+RUN pnpm install --frozen-lockfile=false
+
+COPY apps/server apps/server
+COPY apps/web apps/web
+COPY packages/shared packages/shared
+COPY packages/route-inference packages/route-inference
+
+RUN pnpm --filter @mockdock/shared build \
+  && pnpm --filter @mockdock/route-inference build \
+  && pnpm --filter @mockdock/server build \
+  && pnpm --dir apps/web build
+
+FROM node:22-alpine
+
+ARG MOCKDOCK_VERSION=0.0.1
+
+ENV MOCKDOCK_DATABASE_PATH=/app/data/mockdock.sqlite
+ENV MOCKDOCK_HOST=0.0.0.0
+ENV MOCKDOCK_PORT=52052
+ENV MOCKDOCK_VERSION=${MOCKDOCK_VERSION}
+
+LABEL org.opencontainers.image.title="MockDock"
+LABEL org.opencontainers.image.version="${MOCKDOCK_VERSION}"
+
+WORKDIR /app
+
+RUN apk add --no-cache nginx \
+  && mkdir -p /app/data /run/nginx /usr/share/nginx/html
+
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/package.json ./package.json
+COPY --from=build /app/apps/server ./apps/server
+COPY --from=build /app/packages/shared ./packages/shared
+COPY --from=build /app/packages/route-inference ./packages/route-inference
+COPY --from=build /app/apps/web/dist/web/browser /usr/share/nginx/html
+COPY docker/nginx/combined.conf.template /etc/nginx/combined.conf.template
+COPY docker/combined/start.sh /start.sh
+
+RUN chmod +x /start.sh
+
+EXPOSE 80 52052
+
+CMD ["/start.sh"]

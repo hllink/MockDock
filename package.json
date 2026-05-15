@@ -1,0 +1,28 @@
+{
+  "name": "mockdock",
+  "version": "0.0.2",
+  "private": true,
+  "packageManager": "pnpm@10.10.0",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "better-sqlite3",
+      "esbuild",
+      "lmdb",
+      "msgpackr-extract"
+    ]
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel --if-present dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm --filter @mockdock/shared build && pnpm --filter @mockdock/route-inference build && pnpm -r test",
+    "version:current": "node scripts/version.mjs current",
+    "version:patch": "node scripts/version.mjs patch",
+    "version:minor": "node scripts/version.mjs minor",
+    "version:major": "node scripts/version.mjs major",
+    "docker:build": "bash ./scripts/docker-build.sh",
+    "docker:push": "bash ./scripts/docker-push.sh"
+  }
+}

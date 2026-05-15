@@ -1,0 +1,49 @@
+<main
+  class="dashboard"
+  [class.is-bulk-delete-mode]="store.bulkDeleteMode()"
+  [style.--nav-pane-width]="navPaneWidth() + '%'"
+  [style.--request-pane-width]="requestPaneWidth() + 'fr'"
+  [style.--response-pane-width]="responsePaneWidth() + 'fr'"
+>
+  <aside class="pane pane-nav">
+    <header class="workspace-chrome">
+      <img
+        src="mockdock_logo_transparent.png"
+        [attr.alt]="i18n.t('common.logoAlt')"
+        class="workspace-logo"
+      />
+      <div class="workspace-copy">
+        <h1>MOCKDOCK</h1>
+      </div>
+    </header>
+    <app-route-nav />
+  </aside>
+
+  @if (!store.bulkDeleteMode()) {
+    <button
+      type="button"
+      class="pane-splitter pane-splitter-nav"
+      [attr.aria-label]="i18n.t('app.resizeNavRequest')"
+      (pointerdown)="startNavRequestResize($event)"
+    >
+      <span class="pane-splitter-grip" aria-hidden="true"></span>
+    </button>
+
+    <section #requestPane class="pane pane-request">
+      <app-request-panel />
+    </section>
+
+    <button
+      type="button"
+      class="pane-splitter"
+      [attr.aria-label]="i18n.t('app.resizeRequestResponse')"
+      (pointerdown)="startRequestResponseResize($event)"
+    >
+      <span class="pane-splitter-grip" aria-hidden="true"></span>
+    </button>
+
+    <section #responsePane class="pane pane-response">
+      <app-response-editor />
+    </section>
+  }
+</main>
