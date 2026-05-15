@@ -1,0 +1,378 @@
+.ambient-state {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 100dvh;
+  padding: 2rem;
+}
+
+.ambient-state-page {
+  background:
+    radial-gradient(circle at top, rgba(182, 126, 255, 0.18), transparent 38%),
+    radial-gradient(circle at bottom, rgba(99, 187, 255, 0.1), transparent 30%);
+}
+
+.ambient-state-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: rgba(9, 5, 16, 0.3);
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+}
+
+.ambient-state-shell {
+  display: grid;
+  justify-items: center;
+  gap: 1.15rem;
+  width: min(36rem, 100%);
+  text-align: center;
+}
+
+.ambient-help-button {
+  position: absolute;
+  top: 1.4rem;
+  right: 1.4rem;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.7rem;
+  height: 2.7rem;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(31, 20, 51, 0.96), rgba(17, 10, 29, 0.92)),
+    rgba(163, 124, 235, 0.08);
+  color: #ffe0fb;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 123, 224, 0.26),
+    0 10px 24px rgba(7, 4, 12, 0.28);
+  cursor: pointer;
+}
+
+.ambient-help-button span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1ch;
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1;
+  transform: translateY(-0.02em);
+}
+
+.ambient-help-button:hover,
+.ambient-help-button:focus-visible,
+.ambient-copy-button:hover,
+.ambient-copy-button:focus-visible,
+.ambient-help-close:hover,
+.ambient-help-close:focus-visible {
+  outline: none;
+  filter: brightness(1.08);
+}
+
+.ambient-state-logo {
+  width: clamp(10rem, 18vw, 14rem);
+  height: clamp(10rem, 18vw, 14rem);
+  object-fit: contain;
+  filter:
+    drop-shadow(0 0 2.5rem rgba(124, 180, 255, 0.18))
+    drop-shadow(0 0.8rem 2rem rgba(0, 0, 0, 0.35));
+  animation: ambient-logo-float 4.8s ease-in-out infinite;
+}
+
+.ambient-state-message {
+  margin: 0;
+  max-width: 28rem;
+  color: rgba(243, 237, 255, 0.92);
+  font-size: clamp(1rem, 2.4vw, 1.35rem);
+  letter-spacing: 0.04em;
+  text-wrap: balance;
+  text-shadow: 0 0 1.2rem rgba(180, 132, 255, 0.16);
+  animation: ambient-message-drift 2.2s ease;
+}
+
+.ambient-state-message.is-glitching {
+  opacity: 0.78;
+  filter: blur(0.03rem);
+  transform: translateY(-0.08rem) skewX(-4deg);
+}
+
+.ambient-state-saving .ambient-state-message,
+.ambient-state-loading .ambient-state-message {
+  max-width: 22rem;
+}
+
+.token {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.08rem 0.34rem;
+  border-radius: 999px;
+  font-size: 0.88em;
+  font-weight: 700;
+}
+
+.token-workspace {
+  background: rgba(82, 216, 172, 0.18);
+  color: #8df0ca;
+}
+
+.ambient-help-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(7, 4, 14, 0.76);
+  backdrop-filter: blur(10px);
+}
+
+.ambient-help-modal {
+  width: min(56rem, 100%);
+  max-height: min(90vh, 52rem);
+  overflow: auto;
+  padding: 1.2rem;
+  border: 1px solid rgba(190, 153, 247, 0.2);
+  border-radius: 1.4rem;
+  background:
+    radial-gradient(circle at top right, rgba(255, 123, 224, 0.12), transparent 24%),
+    radial-gradient(circle at bottom left, rgba(82, 216, 172, 0.12), transparent 22%),
+    linear-gradient(180deg, rgba(23, 12, 39, 0.98), rgba(13, 7, 24, 0.98));
+  box-shadow: 0 30px 90px rgba(3, 2, 8, 0.55);
+}
+
+.ambient-help-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.ambient-help-eyebrow {
+  margin: 0 0 0.2rem;
+  color: #ffb9eb;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.ambient-help-header h2 {
+  margin: 0;
+  color: #fff8ff;
+  font-size: clamp(1.3rem, 3vw, 2rem);
+  line-height: 1.1;
+}
+
+.ambient-help-close {
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(163, 124, 235, 0.12);
+  color: #f5eeff;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ambient-help-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.95rem;
+}
+
+.ambient-help-card {
+  display: grid;
+  gap: 0.7rem;
+  padding: 1rem;
+  border: 1px solid rgba(190, 153, 247, 0.14);
+  border-radius: 1.05rem;
+  background: rgba(18, 10, 31, 0.7);
+  text-align: left;
+}
+
+.ambient-help-card p {
+  margin: 0;
+  color: #d9ccec;
+}
+
+.ambient-help-card ol {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: #d9ccec;
+}
+
+.ambient-help-card li + li {
+  margin-top: 0.45rem;
+}
+
+.ambient-help-kicker {
+  color: #dcb6ff;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.ambient-help-card-intro {
+  background:
+    linear-gradient(135deg, rgba(82, 216, 172, 0.12), transparent 55%),
+    rgba(18, 10, 31, 0.78);
+}
+
+.ambient-starter-address {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem;
+  border-radius: 0.95rem;
+  background: rgba(11, 6, 20, 0.8);
+}
+
+.ambient-starter-address code,
+.ambient-url-legend code {
+  font-family: "IBM Plex Mono", "SFMono-Regular", monospace;
+}
+
+.ambient-starter-address code {
+  flex: 1 1 18rem;
+  min-width: 0;
+  color: #fff8ff;
+  font-size: 0.95rem;
+  word-break: break-all;
+}
+
+.ambient-copy-button {
+  padding: 0.55rem 0.85rem;
+  border: 0;
+  border-radius: 0.8rem;
+  background: rgba(82, 216, 172, 0.18);
+  color: #9bf5d3;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.ambient-help-note {
+  color: #abf0d4;
+  font-size: 0.9rem;
+}
+
+.ambient-help-card-example {
+  background:
+    linear-gradient(135deg, rgba(107, 140, 255, 0.12), transparent 55%),
+    rgba(18, 10, 31, 0.78);
+}
+
+.ambient-url-legend {
+  padding: 0.9rem;
+  border-radius: 0.95rem;
+  background: rgba(11, 6, 20, 0.84);
+  overflow: auto;
+}
+
+.ambient-url-legend code {
+  display: inline-block;
+  min-width: max-content;
+  font-size: 0.96rem;
+}
+
+.url-part {
+  font-weight: 700;
+}
+
+.url-host,
+.legend-chip-host {
+  color: #f2c66e;
+}
+
+.url-workspace,
+.legend-chip-workspace {
+  color: #8df0ca;
+}
+
+.url-route,
+.legend-chip-route {
+  color: #92b2ff;
+}
+
+.url-param,
+.legend-chip-param {
+  color: #ff9fdc;
+}
+
+.ambient-legend-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.ambient-legend-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.24rem 0.52rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+}
+
+@keyframes ambient-logo-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-0.35rem);
+  }
+}
+
+@keyframes ambient-message-drift {
+  from {
+    opacity: 0;
+    transform: translateY(0.4rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 720px) {
+  .ambient-state {
+    padding: 1rem;
+  }
+
+  .ambient-help-button {
+    top: 1rem;
+    right: 1rem;
+  }
+
+  .ambient-help-modal {
+    padding: 1rem;
+    border-radius: 1.1rem;
+  }
+
+  .ambient-help-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ambient-starter-address {
+    align-items: stretch;
+  }
+
+  .ambient-copy-button {
+    width: 100%;
+  }
+}

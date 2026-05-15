@@ -1,0 +1,30 @@
+<div class="language-switcher">
+  <button
+    type="button"
+    class="language-switcher-button"
+    [attr.aria-label]="i18n.t('common.languageSwitcherLabel')"
+    [attr.aria-expanded]="open()"
+    (click)="toggleMenu()"
+  >
+    <span class="language-switcher-flag" aria-hidden="true">{{ flagFor(i18n.locale()) }}</span>
+    <span class="sr-only">{{ i18n.t("common.language") }}: {{ i18n.languageLabel(i18n.locale()) }}</span>
+  </button>
+
+  @if (open()) {
+    <div class="language-switcher-menu" role="menu" [attr.aria-label]="i18n.t('common.language')">
+      @for (option of i18n.localeOptions; track option.code) {
+        <button
+          type="button"
+          role="menuitemradio"
+          class="language-option"
+          [class.is-active]="isActive(option.code)"
+          [attr.aria-checked]="isActive(option.code)"
+          (click)="selectLocale(option.code)"
+        >
+          <span class="language-option-flag" aria-hidden="true">{{ flagFor(option.code) }}</span>
+          <span>{{ i18n.languageLabel(option.code) }}</span>
+        </button>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,347 @@
+<section class="response-editor">
+  <header>
+    <p class="eyebrow">{{ i18n.t("responseEditor.headingEyebrow") }}</p>
+    <h2>{{ i18n.t("responseEditor.liveResponse") }}</h2>
+    <p class="variant-context">
+      {{ variantLabel() }} · {{ isSavedVariant() ? i18n.t("responseEditor.savedVariant") : i18n.t("responseEditor.capturedQueryCandidate") }}
+    </p>
+    <span class="sync-state" [attr.data-state]="syncStateKey()">{{ syncState() }}</span>
+    @if (saveErrorMessage()) {
+      <p class="editor-save-error">{{ saveErrorMessage() }}</p>
+    }
+  </header>
+
+  <section class="response-preset-tabs-shell">
+    <div class="response-preset-tabs-copy">
+      <p class="response-preset-eyebrow">{{ i18n.t("responseEditor.responsePresets") }}</p>
+      <span class="response-preset-context">{{ variantLabel() }}</span>
+    </div>
+
+    <div class="response-preset-strip">
+      <div class="response-preset-tabs" role="tablist" [attr.aria-label]="i18n.t('responseEditor.responsePresets')">
+        @for (preset of availablePresets(); track preset.id) {
+          <button
+            type="button"
+            class="response-preset-tab"
+            [class.is-active]="preset.id === activePresetId()"
+            (click)="activateExistingPreset(preset.id)"
+          >
+            {{ preset.name }}
+          </button>
+        }
+      </div>
+
+      <div class="response-preset-actions">
+        <button
+          type="button"
+          class="response-preset-action response-preset-icon-action secondary"
+          [attr.aria-label]="i18n.t('responseEditor.renamePreset')"
+          [attr.title]="i18n.t('responseEditor.renamePreset')"
+          [class.is-disabled]="!canRenameActivePreset()"
+          [attr.aria-disabled]="!canRenameActivePreset()"
+          (click)="openRenamePresetDialog()"
+        >
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path
+              d="M11.9 1.6a1.5 1.5 0 0 1 2.1 2.1l-7.7 7.7-3 .8.8-3 7.8-7.6Zm-7 8.1-.4 1.4 1.4-.4 6.9-6.9-1-1-6.9 6.9Z"
+            />
+          </svg>
+        </button>
+        <button
+          type="button"
+          class="response-preset-action response-preset-icon-action response-preset-delete secondary"
+          [attr.aria-label]="i18n.t('responseEditor.deletePreset')"
+          [attr.title]="canDeleteActivePreset() ? i18n.t('responseEditor.deletePreset') : i18n.t('responseEditor.atLeastOnePresetRequired')"
+          [class.is-disabled]="!canDeleteActivePreset()"
+          [attr.aria-disabled]="!canDeleteActivePreset()"
+          (click)="openDeletePresetConfirm()"
+        >
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path
+              d="M6 1.75h4a1 1 0 0 1 1 1V3h2.25a.75.75 0 0 1 0 1.5h-.6l-.55 8.02A1.5 1.5 0 0 1 10.6 14H5.4a1.5 1.5 0 0 1-1.5-1.48L3.35 4.5h-.6a.75.75 0 0 1 0-1.5H5v-.25a1 1 0 0 1 1-1Zm1 .5a.5.5 0 0 0-.5.5V3h3v-.25a.5.5 0 0 0-.5-.5H7Zm-1.6 10.25h5.2l.53-8H4.87l.53 8Zm1.35-6.25a.75.75 0 0 1 .75.75v3a.75.75 0 0 1-1.5 0V7a.75.75 0 0 1 .75-.75Zm2.5 0A.75.75 0 0 1 10 7v3a.75.75 0 0 1-1.5 0V7a.75.75 0 0 1 .75-.75Z"
+            />
+          </svg>
+        </button>
+        <button
+          type="button"
+          class="response-preset-action response-preset-icon-action response-preset-add"
+          [attr.aria-label]="i18n.t('responseEditor.createPreset')"
+          [attr.title]="i18n.t('responseEditor.createPreset')"
+          (click)="openCreatePresetDialog()"
+        >
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M7.2 2.2h1.6v4h4v1.6h-4v4H7.2v-4h-4V6.2h4z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    @if (isPresetDialogOpen()) {
+      <div class="preset-popup" role="dialog" aria-modal="false" [attr.aria-label]="i18n.t('responseEditor.presetName')">
+        <p class="preset-popup-title">{{ presetDialogTitle() }}</p>
+        <label class="preset-popup-field">
+          <span>{{ i18n.t("responseEditor.name") }}</span>
+          <input
+            [value]="presetDialogNameValue()"
+            (input)="updatePresetDialogName($any($event.target).value)"
+          />
+        </label>
+        <div class="preset-popup-actions">
+          <button type="button" class="secondary" (click)="closePresetDialog()">{{ i18n.t("common.cancel") }}</button>
+          <button type="button" class="primary" (click)="submitPresetDialog()">
+            {{ presetDialogConfirmLabel() }}
+          </button>
+        </div>
+      </div>
+    }
+  </section>
+
+  <section class="response-toolbar">
+    <div class="toolbar-main status-toolbar-panel">
+      <app-response-status-toolbar
+        [statusCode]="draftStatusCode()"
+        [selectedStatusButtonKey]="selectedStatusButtonKey()"
+        [selectedStatusButtonLabel]="selectedStatusButtonLabel()"
+        (statusSelectionChange)="selectDraftStatusCode($event)"
+        (customStatusCodeChange)="setCustomDraftStatusCode($event)"
+      />
+    </div>
+
+    <div class="toolbar-group mode-group payload-mode-panel">
+      <span class="toolbar-label">{{ i18n.t("responseEditor.payloadMode") }}</span>
+      <nav class="mode-tabs">
+        @for (mode of payloadModes(); track mode) {
+          <button
+            type="button"
+            [class.is-active]="draftPayloadMode() === mode"
+            (click)="setDraftPayloadMode(mode)"
+          >
+            {{ mode }}
+          </button>
+        }
+      </nav>
+    </div>
+
+    <div class="toolbar-controls">
+      <label class="toolbar-field content-type-field">
+        <span>{{ i18n.t("responseEditor.contentType") }}</span>
+        <input
+          list="response-content-types"
+          [value]="draftContentType()"
+          (input)="setDraftContentType($any($event.target).value)"
+        />
+      </label>
+    </div>
+  </section>
+
+  <section class="response-behavior-row">
+    <div class="response-behavior-copy">
+      <div class="response-behavior-heading">
+        <span class="toolbar-label">{{ i18n.t("responseEditor.responseBehavior") }}</span>
+        @if (hasSimulatedDelay()) {
+          <span class="delay-badge">{{ delayBadgeLabel() }}</span>
+        }
+      </div>
+      <p class="response-behavior-hint">{{ i18n.t("responseEditor.delayHelperText") }}</p>
+    </div>
+
+    <div class="response-behavior-controls">
+      <label class="toolbar-field simulated-delay-field">
+        <span>{{ i18n.t("responseEditor.simulatedDelay") }}</span>
+        <div class="delay-input-shell">
+          <input
+            type="number"
+            min="0"
+            step="1"
+            [value]="draftDelayMs()"
+            (input)="setDraftDelay($any($event.target).value)"
+          />
+          <span class="delay-suffix">{{ i18n.t("responseEditor.delayMsSuffix") }}</span>
+        </div>
+      </label>
+
+      <div class="delay-chip-row" [attr.aria-label]="i18n.t('responseEditor.simulatedDelay')">
+        @for (delayMs of delayChipValues; track delayMs) {
+          <button
+            type="button"
+            class="delay-chip secondary"
+            [class.is-active]="draftDelayMs() === delayMs"
+            (click)="applyDelayChip(delayMs)"
+          >
+            {{ delayMs }} {{ i18n.t("responseEditor.delayMsSuffix") }}
+          </button>
+        }
+      </div>
+    </div>
+  </section>
+
+  <datalist id="response-content-types">
+    @for (option of contentTypeOptions(); track option.value) {
+      <option [value]="option.value">{{ option.label }}</option>
+    }
+  </datalist>
+
+  @if (isCodeEditorMode()) {
+    <section class="code-editor-card" [class.has-inline-error]="jsonError()">
+      <button
+        type="button"
+        class="code-editor-expand-button secondary"
+        [attr.aria-label]="i18n.t('responseEditor.expandEditor')"
+        [attr.title]="i18n.t('responseEditor.expandEditor')"
+        (click)="openFullscreenCodeEditor()"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M8 3H3v5" />
+          <path d="M16 3h5v5" />
+          <path d="M21 16v5h-5" />
+          <path d="M8 21H3v-5" />
+        </svg>
+      </button>
+
+      <app-code-editor
+        class="payload-code-editor"
+        [language]="editorLanguage()"
+        [resetToken]="codeEditorResetToken()"
+        [value]="codeEditorValue()"
+        (valueChange)="updateCodeEditorValue($event)"
+      />
+
+      @if (jsonError()) {
+        <p class="editor-inline-error">{{ jsonError() }}</p>
+      }
+    </section>
+  }
+
+  @if (isFieldEditorMode()) {
+    <section class="field-editor">
+      <header class="field-editor-header">
+        <p>{{ draftPayloadMode() }}</p>
+        <button type="button" class="secondary" (click)="addFieldEntry()">{{ i18n.t("responseEditor.addField") }}</button>
+      </header>
+
+      <div class="field-editor-table">
+        @for (entry of fieldEntries(); track $index) {
+          <div class="field-editor-row">
+            <input
+              class="field-key"
+              [attr.placeholder]="i18n.t('responseEditor.field')"
+              [value]="entry.key"
+              (input)="updateFieldEntry($index, 'key', $any($event.target).value)"
+            />
+            <input
+              class="field-value"
+              [attr.placeholder]="i18n.t('responseEditor.value')"
+              [value]="entry.value"
+              (input)="updateFieldEntry($index, 'value', $any($event.target).value)"
+            />
+            <button type="button" class="field-remove secondary" (click)="removeFieldEntry($index)">
+              {{ i18n.t("common.remove") }}
+            </button>
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  @if (binaryPayload(); as binary) {
+    <section class="binary-editor">
+      <label class="binary-picker">
+        <span>{{ i18n.t("responseEditor.binaryFile") }}</span>
+        <input type="file" (change)="updateBinaryFile($event)" />
+      </label>
+
+      <div class="binary-summary">
+        <p>{{ binary.fileName }}</p>
+        <span>{{ binary.mimeType }}</span>
+        <span>{{ binary.sizeBytes }} {{ i18n.t("responseEditor.bytes") }}</span>
+      </div>
+
+      <button type="button" class="secondary" (click)="clearBinaryFile()">{{ i18n.t("responseEditor.removeFile") }}</button>
+    </section>
+  }
+
+  @if (isDirty()) {
+    <div class="editor-actions">
+      <span class="editor-dirty-indicator">{{ i18n.t("responseEditor.unsavedEdits") }}</span>
+      <div class="editor-action-buttons">
+        <button type="button" class="secondary" (click)="revertDraft()">{{ i18n.t("responseEditor.revert") }}</button>
+        <button type="button" class="primary" (click)="saveDraft()">{{ i18n.t("responseEditor.saveResponse") }}</button>
+      </div>
+    </div>
+  }
+</section>
+
+@if (isDeletePresetConfirmOpen()) {
+  <div class="confirm-modal-backdrop" (click)="closeDeletePresetConfirm()">
+    <section
+      class="confirm-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-preset-title"
+      (click)="$event.stopPropagation()"
+    >
+      <p class="eyebrow">{{ i18n.t("responseEditor.deletePreset") }}</p>
+      <h3 id="delete-preset-title">{{ i18n.t("responseEditor.deletePresetTitle", { name: activePresetName() }) }}</h3>
+      <p class="confirm-copy">{{ i18n.t("responseEditor.deletePresetDescription") }}</p>
+      <div class="confirm-actions">
+        <button
+          type="button"
+          class="confirm-button cancel-button"
+          [disabled]="isDeletingPreset()"
+          (click)="closeDeletePresetConfirm()"
+        >
+          {{ i18n.t("common.cancel") }}
+        </button>
+        <button
+          type="button"
+          class="confirm-button delete-button"
+          [disabled]="isDeletingPreset()"
+          (click)="confirmDeletePreset()"
+        >
+          {{ isDeletingPreset() ? i18n.t("responseEditor.deleting") : i18n.t("responseEditor.deletePreset") }}
+        </button>
+      </div>
+    </section>
+  </div>
+}
+
+<dialog
+  #fullscreenCodeEditorDialog
+  class="fullscreen-editor-dialog"
+  [attr.aria-label]="i18n.t('responseEditor.expandEditor')"
+  (close)="handleFullscreenDialogClose()"
+>
+  <section class="fullscreen-editor-modal">
+    <button
+      type="button"
+      class="fullscreen-editor-close secondary"
+      [attr.aria-label]="i18n.t('responseEditor.closeFullscreenEditor')"
+      (click)="closeFullscreenCodeEditor()"
+    >
+      ×
+    </button>
+
+    @if (saveErrorMessage()) {
+      <p class="editor-save-error fullscreen-editor-save-error">{{ saveErrorMessage() }}</p>
+    }
+
+    <app-code-editor
+      class="fullscreen-code-editor"
+      [language]="editorLanguage()"
+      [resetToken]="codeEditorResetToken()"
+      [value]="codeEditorValue()"
+      (valueChange)="updateCodeEditorValue($event)"
+    />
+
+    @if (jsonError()) {
+      <p class="editor-inline-error fullscreen-editor-inline-error">{{ jsonError() }}</p>
+    }
+
+    @if (isDirty()) {
+      <div class="fullscreen-editor-actions">
+        <button type="button" class="secondary" (click)="revertDraft()">{{ i18n.t("responseEditor.revert") }}</button>
+        <button type="button" class="primary" (click)="saveDraft()">{{ i18n.t("responseEditor.saveResponse") }}</button>
+      </div>
+    }
+  </section>
+</dialog>

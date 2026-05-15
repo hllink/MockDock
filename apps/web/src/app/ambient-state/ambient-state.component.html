@@ -1,0 +1,94 @@
+<section [class]="hostClasses()" aria-live="polite">
+  @if (showHelpEntry()) {
+    <button
+      type="button"
+      class="ambient-help-button"
+      [attr.aria-label]="i18n.t('ambient.openHelpAria')"
+      [attr.title]="i18n.t('ambient.openHelpTitle')"
+      (click)="openHelpModal()"
+    >
+      <span aria-hidden="true">?</span>
+    </button>
+  }
+
+  <div class="ambient-state-shell">
+    <img
+      src="mockdock_logo_transparent.png"
+      [attr.alt]="i18n.t('common.logoAlt')"
+      class="ambient-state-logo"
+    />
+    <p class="ambient-state-message" [class.is-glitching]="isGlitching()">
+      {{ currentMessage() }}
+    </p>
+  </div>
+
+  @if (helpModalOpen()) {
+    <div class="ambient-help-backdrop" (click)="closeHelpModal()">
+      <section
+        class="ambient-help-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="ambient-help-title"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="ambient-help-header">
+          <div>
+            <p class="ambient-help-eyebrow">{{ i18n.t("ambient.quickStart") }}</p>
+            <h2 id="ambient-help-title">{{ i18n.t("ambient.quickStartTitle") }}</h2>
+          </div>
+          <button
+            type="button"
+            class="ambient-help-close"
+            [attr.aria-label]="i18n.t('ambient.closeHelpAria')"
+            (click)="closeHelpModal()"
+          >
+            ×
+          </button>
+        </div>
+
+        <div class="ambient-help-grid">
+          <article class="ambient-help-card ambient-help-card-intro">
+            <span class="ambient-help-kicker">{{ i18n.t("ambient.firstStep") }}</span>
+            <p>{{ i18n.t("ambient.firstStepDescription") }}</p>
+            <ol>
+              <li>{{ i18n.t("ambient.chooseWorkspace", { acme: "acme", demo: "demo" }) }}</li>
+              <li>{{ i18n.t("ambient.useFirstSegment") }}</li>
+              <li>{{ i18n.t("ambient.sendRequestCreatesWorkspace") }}</li>
+            </ol>
+          </article>
+
+          <article class="ambient-help-card">
+            <span class="ambient-help-kicker">{{ i18n.t("ambient.starterAddress") }}</span>
+            <div class="ambient-starter-address">
+              <code>{{ starterRequestUrl() }}</code>
+              <button type="button" class="ambient-copy-button" (click)="copyStarterAddress()">
+                {{ addressCopied() ? i18n.t("common.copied") : i18n.t("common.copy") }}
+              </button>
+            </div>
+            <p class="ambient-help-note">{{ i18n.t("ambient.starterAddressNote", { demo: "demo" }) }}</p>
+          </article>
+
+          <article class="ambient-help-card ambient-help-card-example">
+            <span class="ambient-help-kicker">{{ i18n.t("ambient.readingUrl") }}</span>
+            <div class="ambient-url-legend">
+              <code>
+                <span class="url-part url-host">http://localhost:52052</span>/<span class="url-part url-workspace">acme</span>/<span class="url-part url-route">users</span>/<span class="url-part url-param">{{ '{' }}id{{ '}' }}</span>
+              </code>
+            </div>
+            <div class="ambient-legend-chips" [attr.aria-label]="i18n.t('ambient.urlLegendAria')">
+              <span class="ambient-legend-chip legend-chip-host">{{ i18n.t("ambient.host") }}</span>
+              <span class="ambient-legend-chip legend-chip-workspace">{{ i18n.t("ambient.workspace") }}</span>
+              <span class="ambient-legend-chip legend-chip-route">{{ i18n.t("ambient.route") }}</span>
+              <span class="ambient-legend-chip legend-chip-param">{{ i18n.t("ambient.param", { param: "param" }) }}</span>
+            </div>
+          </article>
+
+          <article class="ambient-help-card ambient-help-card-steps">
+            <span class="ambient-help-kicker">{{ i18n.t("ambient.howMockDockReadsIt") }}</span>
+            <p>{{ i18n.t("ambient.howMockDockReadsItDescription") }}</p>
+          </article>
+        </div>
+      </section>
+    </div>
+  }
+</section>

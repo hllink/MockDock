@@ -1,0 +1,86 @@
+<section class="response-status-toolbar" [attr.aria-label]="i18n.t('responseStatus.responseStatusAria')">
+  <div class="status-buttons status-strip">
+    @for (button of statusButtons; track button.label) {
+      <div class="status-family" [class.menu-open]="openFamilyMenu === button.label">
+        <button
+          type="button"
+          class="status-button"
+          [class.is-active]="selectedStatusButtonKey === button.label"
+          [attr.aria-label]="button.label + ' ' + button.description"
+          (click)="selectFamilyDefault(button)"
+        >
+          {{ statusButtonLabel(button.label) }}
+        </button>
+
+        <button
+          type="button"
+          class="status-caret"
+          [class.is-active]="openFamilyMenu === button.label"
+          [attr.aria-expanded]="openFamilyMenu === button.label"
+          (click)="toggleFamilyMenu($event, button.label)"
+        >
+          ▾
+        </button>
+
+        <div
+          class="status-menu"
+          popover="auto"
+          role="menu"
+          [attr.data-family-menu]="button.label"
+          [style.top]="familyMenuTop"
+          [style.left]="familyMenuLeft"
+          [style.min-width]="familyMenuMinWidth"
+          (toggle)="handleFamilyMenuToggle(button.label, $event)"
+        >
+          @for (option of button.options; track option.code) {
+            <button
+              type="button"
+              class="status-menu-item"
+              [class.is-current]="selectedStatusButtonKey === button.label && statusCode === option.code"
+              (click)="selectFamilyOption(button.label, option.code)"
+            >
+              {{ option.label }}
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <div class="custom-status" [class.is-active]="selectedStatusButtonKey === 'custom'">
+      <button
+        type="button"
+        class="custom-status-button"
+        [class.is-active]="selectedStatusButtonKey === 'custom'"
+        [attr.aria-expanded]="customPopupOpen"
+        (click)="toggleCustomPopup($event)"
+      >
+        {{ customStatusLabel() }}
+      </button>
+
+      <div
+        class="custom-popup"
+        popover="auto"
+        data-custom-popup
+        [style.top]="customPopupTop"
+        [style.left]="customPopupLeft"
+        [style.min-width]="customPopupMinWidth"
+        (toggle)="handleCustomPopupToggle($event)"
+      >
+        <label>
+          <span>{{ i18n.t("responseStatus.customCode") }}</span>
+          <input
+            type="number"
+            min="100"
+            max="599"
+            [value]="customStatusCodeInput"
+            (input)="updateCustomStatusCodeInput($any($event.target).value)"
+          />
+        </label>
+        <div class="custom-popup-actions">
+          <button type="button" class="popup-action" (click)="applyCustomStatusCode()">{{ i18n.t("responseStatus.apply") }}</button>
+          <button type="button" class="popup-action secondary" (click)="closeCustomPopup()">{{ i18n.t("common.cancel") }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

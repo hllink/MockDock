@@ -1,0 +1,8 @@
+{
+  "/__mockdock": {
+    "target": "http://127.0.0.1:52052",
+    "secure": false,
+    "changeOrigin": true,
+    "ws": true
+  }
+}

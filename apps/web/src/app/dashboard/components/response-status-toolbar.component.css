@@ -1,0 +1,173 @@
+.response-status-toolbar {
+  position: relative;
+  z-index: 4;
+  isolation: isolate;
+}
+
+.status-buttons {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.45rem;
+  align-items: center;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.status-family,
+.custom-status {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+
+.status-button,
+.status-caret,
+.custom-status-button,
+.popup-action {
+  border: 1px solid rgba(177, 129, 245, 0.18);
+  border-radius: 0.85rem;
+  background: rgba(23, 14, 38, 0.94);
+  color: #efe5ff;
+}
+
+.status-button {
+  min-width: 4.1rem;
+  padding: 0.55rem 0.72rem;
+  font: inherit;
+  font-weight: 700;
+  line-height: 1.1;
+  cursor: pointer;
+}
+
+.status-caret,
+.custom-status-button,
+.popup-action {
+  padding: 0.55rem 0.72rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.status-caret {
+  min-width: 2.15rem;
+  border-left: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.status-family .status-button {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.status-button.is-active,
+.status-caret.is-active,
+.custom-status-button.is-active,
+.custom-status.is-active .custom-status-button {
+  border-color: rgba(255, 123, 224, 0.55);
+  background:
+    linear-gradient(135deg, rgba(101, 52, 171, 0.92), rgba(214, 92, 191, 0.88)),
+    rgba(43, 23, 71, 0.96);
+  color: #fff9ff;
+}
+
+.status-menu,
+.custom-popup {
+  position: fixed;
+  display: none;
+  min-width: 11.5rem;
+  padding: 0.45rem;
+  border: 1px solid rgba(177, 129, 245, 0.18);
+  border-radius: 0.95rem;
+  background:
+    linear-gradient(180deg, rgba(28, 17, 46, 0.98), rgba(14, 9, 24, 0.98)),
+    rgba(18, 11, 30, 0.98);
+  box-shadow: 0 18px 32px rgba(6, 3, 12, 0.46);
+}
+
+.status-menu:popover-open,
+.custom-popup:popover-open {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.status-menu-item {
+  padding: 0.55rem 0.7rem;
+  border: 0;
+  border-radius: 0.75rem;
+  background: transparent;
+  color: #efe5ff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.status-menu-item:hover,
+.status-menu-item.is-current {
+  background: rgba(214, 92, 191, 0.16);
+  color: #ffd8fb;
+}
+
+.custom-status-button {
+  min-height: 100%;
+  font-weight: 600;
+}
+
+.custom-popup {
+  min-width: 13rem;
+}
+
+.custom-popup label {
+  display: grid;
+  gap: 0.35rem;
+  color: #d5c7ee;
+  font-size: 0.88rem;
+}
+
+.custom-popup span {
+  font-weight: 600;
+}
+
+.custom-popup input {
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid rgba(177, 129, 245, 0.18);
+  border-radius: 0.75rem;
+  background: rgba(12, 8, 20, 0.96);
+  color: #f6efff;
+  font: inherit;
+}
+
+.custom-popup-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.popup-action.secondary {
+  background: rgba(16, 10, 27, 0.92);
+}
+
+@media (max-width: 720px) {
+  .status-buttons {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    overflow-x: visible;
+  }
+
+  .status-family,
+  .custom-status {
+    width: 100%;
+  }
+
+  .status-button,
+  .custom-status-button {
+    flex: 1;
+  }
+
+  .status-menu,
+  .custom-popup {
+    position: static;
+    min-width: 0;
+    margin-top: 0.45rem;
+  }
+}

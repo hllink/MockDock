@@ -1,0 +1,159 @@
+:root {
+  color-scheme: dark;
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(182, 126, 255, 0.24) 0, transparent 32%),
+    radial-gradient(circle at top right, rgba(255, 113, 224, 0.16) 0, transparent 24%),
+    linear-gradient(180deg, #12091f 0%, #090510 100%);
+  color: #f5eeff;
+  line-height: 1.5;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --http-method-bg: rgba(163, 124, 235, 0.14);
+  --http-method-border: rgba(201, 149, 255, 0.22);
+  --http-method-color: #eadcff;
+  --http-method-shadow: rgba(201, 149, 255, 0.16);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+body,
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+body {
+  background:
+    radial-gradient(circle at top left, rgba(182, 126, 255, 0.24) 0, transparent 32%),
+    radial-gradient(circle at bottom right, rgba(61, 104, 245, 0.16) 0, transparent 28%),
+    linear-gradient(180deg, #12091f 0%, #090510 100%);
+}
+
+button {
+  appearance: none;
+}
+
+.eyebrow {
+  color: #cdb3f4;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.http-method-pill,
+.http-method-select,
+.http-method-tone {
+  --http-method-bg-current: var(--http-method-bg);
+  --http-method-border-current: var(--http-method-border);
+  --http-method-color-current: var(--http-method-color);
+  --http-method-shadow-current: var(--http-method-shadow);
+}
+
+.http-method-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem 0.48rem;
+  border: 1px solid var(--http-method-border-current);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--http-method-bg-current) 88%, white 12%), var(--http-method-bg-current)),
+    rgba(15, 10, 24, 0.92);
+  color: var(--http-method-color-current);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03), 0 0 0 1px transparent;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.http-method-select {
+  border-color: var(--http-method-border-current);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--http-method-bg-current) 28%, rgba(14, 8, 24, 1) 72%), rgba(14, 8, 24, 0.94)),
+    rgba(18, 10, 31, 0.9);
+  color: var(--http-method-color-current);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--http-method-shadow-current) 45%, transparent);
+}
+
+.http-method-tone {
+  color: color-mix(in srgb, var(--http-method-bg-current) 78%, white 22%);
+  text-shadow:
+    0 0 0.08rem rgba(255, 255, 255, 0.9),
+    0 0 0.55rem color-mix(in srgb, var(--http-method-shadow-current) 85%, transparent);
+}
+
+.http-method-pill[data-method="GET"],
+.http-method-select[data-method="GET"],
+.http-method-tone[data-method="GET"] {
+  --http-method-bg-current: rgba(28, 147, 228, 0.42);
+  --http-method-border-current: rgba(98, 206, 255, 0.56);
+  --http-method-color-current: #d9f4ff;
+  --http-method-shadow-current: rgba(47, 170, 243, 0.3);
+}
+
+.http-method-pill[data-method="POST"],
+.http-method-select[data-method="POST"],
+.http-method-tone[data-method="POST"] {
+  --http-method-bg-current: rgba(25, 179, 91, 0.46);
+  --http-method-border-current: rgba(104, 243, 154, 0.58);
+  --http-method-color-current: #dcffe9;
+  --http-method-shadow-current: rgba(54, 208, 117, 0.32);
+}
+
+.http-method-pill[data-method="PUT"],
+.http-method-select[data-method="PUT"],
+.http-method-tone[data-method="PUT"] {
+  --http-method-bg-current: rgba(103, 97, 255, 0.42);
+  --http-method-border-current: rgba(163, 154, 255, 0.54);
+  --http-method-color-current: #e6e1ff;
+  --http-method-shadow-current: rgba(126, 118, 255, 0.3);
+}
+
+.http-method-pill[data-method="PATCH"],
+.http-method-select[data-method="PATCH"],
+.http-method-tone[data-method="PATCH"] {
+  --http-method-bg-current: rgba(232, 153, 41, 0.44);
+  --http-method-border-current: rgba(255, 206, 117, 0.56);
+  --http-method-color-current: #fff1cc;
+  --http-method-shadow-current: rgba(241, 169, 60, 0.3);
+}
+
+.http-method-pill[data-method="DELETE"],
+.http-method-select[data-method="DELETE"],
+.http-method-tone[data-method="DELETE"] {
+  --http-method-bg-current: rgba(220, 67, 97, 0.44);
+  --http-method-border-current: rgba(255, 128, 153, 0.56);
+  --http-method-color-current: #ffe0e8;
+  --http-method-shadow-current: rgba(232, 87, 117, 0.32);
+}
+
+.http-method-pill[data-method="OPTIONS"],
+.http-method-select[data-method="OPTIONS"],
+.http-method-tone[data-method="OPTIONS"] {
+  --http-method-bg-current: rgba(167, 86, 224, 0.42);
+  --http-method-border-current: rgba(221, 152, 255, 0.54);
+  --http-method-color-current: #f6e4ff;
+  --http-method-shadow-current: rgba(187, 111, 239, 0.3);
+}
+
+.http-method-pill[data-method="HEAD"],
+.http-method-select[data-method="HEAD"],
+.http-method-tone[data-method="HEAD"] {
+  --http-method-bg-current: rgba(101, 120, 146, 0.4);
+  --http-method-border-current: rgba(169, 190, 221, 0.5);
+  --http-method-color-current: #e8f0ff;
+  --http-method-shadow-current: rgba(127, 150, 179, 0.28);
+}

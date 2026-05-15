@@ -1,0 +1,203 @@
+.dashboard {
+  display: grid;
+  grid-template-columns:
+    minmax(18rem, var(--nav-pane-width, 26%))
+    0.8rem
+    minmax(18rem, var(--request-pane-width, 50fr))
+    0.8rem
+    minmax(18rem, var(--response-pane-width, 50fr));
+  align-items: stretch;
+  gap: 1rem;
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+  padding: 1.25rem;
+}
+
+.dashboard.is-bulk-delete-mode {
+  grid-template-columns: minmax(22rem, 42rem);
+  justify-content: center;
+}
+
+.pane {
+  min-width: 0;
+  min-height: 0;
+  padding: 1.25rem;
+  border: 1px solid rgba(177, 129, 245, 0.18);
+  border-radius: 1.5rem;
+  background:
+    linear-gradient(180deg, rgba(30, 18, 51, 0.94), rgba(15, 9, 28, 0.9)),
+    rgba(14, 9, 24, 0.88);
+  box-shadow: 0 24px 60px rgba(4, 2, 9, 0.42);
+  backdrop-filter: blur(16px);
+}
+
+.pane-request {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  min-height: calc(100dvh - 2.5rem);
+  overflow: hidden;
+}
+
+.pane-request app-request-panel {
+  display: block;
+  min-height: 0;
+  height: 100%;
+  overflow: auto;
+}
+
+.pane-response {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  min-height: calc(100dvh - 2.5rem);
+  overflow: hidden;
+}
+
+.pane-response app-response-editor {
+  display: grid;
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+.pane-nav {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  align-content: start;
+  min-height: calc(100dvh - 2.5rem);
+  overflow: hidden;
+  padding: 0.8rem 0.7rem;
+}
+
+.pane-nav app-route-nav {
+  display: grid;
+  align-self: stretch;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.pane-splitter {
+  width: 0.8rem;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(25, 15, 41, 0.84);
+  box-shadow:
+    inset 0 0 0 1px rgba(177, 129, 245, 0.18),
+    0 10px 24px rgba(5, 3, 10, 0.24);
+  cursor: col-resize;
+}
+
+.pane-splitter-grip {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at center, rgba(255, 123, 224, 0.42) 0.1rem, transparent 0.12rem) center / 0.32rem 0.8rem repeat-y,
+    linear-gradient(180deg, rgba(177, 129, 245, 0.16), rgba(214, 92, 191, 0.24));
+}
+
+.pane-splitter:hover,
+.pane-splitter:focus-visible {
+  background: rgba(35, 21, 57, 0.96);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 123, 224, 0.4),
+    0 12px 26px rgba(5, 3, 10, 0.32);
+  outline: none;
+}
+
+.workspace-chrome {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 0.8rem;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.55rem;
+  padding: 0.35rem 0.25rem 0.5rem;
+  border: 0;
+  border-bottom: 1px solid rgba(177, 129, 245, 0.16);
+  border-radius: 0;
+  background: transparent;
+  container-type: inline-size;
+}
+
+.workspace-logo {
+  width: 4.25rem;
+  height: 4.25rem;
+  object-fit: contain;
+  transform: scale(1.3);
+  transform-origin: center;
+  filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.28));
+}
+
+.workspace-copy {
+  display: grid;
+  align-items: center;
+  min-width: 0;
+}
+
+.workspace-copy h1 {
+  margin: 0;
+  min-width: 0;
+  font-size: clamp(1rem, 10cqi, 2rem);
+  letter-spacing: 0.08em;
+  line-height: 1;
+  color: #f8f1ff;
+  white-space: nowrap;
+}
+
+@media (max-width: 1100px) {
+  .dashboard {
+    grid-template-columns: minmax(16rem, 20rem) minmax(0, 1fr);
+  }
+
+  .pane-nav {
+    grid-row: 1 / span 2;
+  }
+
+  .pane-splitter,
+  .pane-splitter-nav {
+    display: none;
+  }
+
+  .pane-response {
+    grid-column: 2;
+    min-height: 18rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .dashboard {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: auto;
+    overflow: visible;
+    padding: 0.9rem;
+  }
+
+  .pane {
+    padding: 1rem;
+    border-radius: 1.1rem;
+  }
+
+  .pane-nav {
+    min-height: 0;
+    padding: 0.75rem;
+  }
+
+  .pane-response {
+    min-height: 0;
+  }
+
+  .workspace-chrome {
+    gap: 0.65rem;
+  }
+
+  .workspace-logo {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+}
