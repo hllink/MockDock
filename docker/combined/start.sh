@@ -7,6 +7,8 @@ ESCAPED_BACKEND_URL="$(printf '%s' "$BACKEND_URL" | sed 's/[|&]/\\&/g')"
 echo "MockDock starting..."
 echo "Dashboard: container port 80"
 echo "Mock server/API: container port ${MOCKDOCK_PORT:-52052}"
+echo "Dashboard URL: http://localhost:52000"
+echo "Mock server/API URL: http://localhost:52052"
 echo "Data path: ${MOCKDOCK_DATABASE_PATH:-/app/data/mockdock.sqlite}"
 
 sed "s|__BACKEND_URL__|$ESCAPED_BACKEND_URL|g" \

@@ -48,12 +48,13 @@ MockDock aims to be a practical open source mock API workbench:
 
 ## Quickstart
 
-### Docker Compose
+### Docker Compose With Docker Hub Images
 
-Run the web app and mock server as separate containers:
+Use the published Docker Hub images:
 
 ```bash
-docker compose up --build
+DOCKER_IMAGE_PREFIX=hllink/mockdock MOCKDOCK_VERSION=latest docker compose pull server web
+DOCKER_IMAGE_PREFIX=hllink/mockdock MOCKDOCK_VERSION=latest docker compose up --no-build
 ```
 
 Open the dashboard:
@@ -72,9 +73,17 @@ MockDock will create the `demo` workspace, infer the route, capture the request,
 
 Go back to the dashboard, select the `demo` workspace and captured route, then edit the response preset. Send the same `curl` request again to receive the updated mock response.
 
-### Docker Run
+To pin a specific release, replace `latest` with the version tag:
 
-Run the latest all-in-one image from Docker Hub:
+```bash
+export MOCKDOCK_VERSION=0.1.0
+DOCKER_IMAGE_PREFIX=hllink/mockdock docker compose pull server web
+DOCKER_IMAGE_PREFIX=hllink/mockdock docker compose up --no-build
+```
+
+### Docker Run With Docker Hub Images
+
+Run the latest all-in-one image:
 
 ```bash
 docker run --rm \
@@ -90,9 +99,50 @@ Then open `http://localhost:52000` and send your first request:
 curl -i http://localhost:52052/demo/api/v1/users/42
 ```
 
+Or run the server and web UI as separate containers:
+
+```bash
+docker network create mockdock
+
+docker run --rm \
+  --name mockdock-server \
+  --network mockdock \
+  -p 52052:52052 \
+  -v "$(pwd)/data:/app/data" \
+  -e MOCKDOCK_DATABASE_PATH=/app/data/mockdock.sqlite \
+  hllink/mockdock-server:latest
+```
+
+In another terminal:
+
+```bash
+docker run --rm \
+  --name mockdock-web \
+  --network mockdock \
+  -p 52000:80 \
+  -e BACKEND_URL=http://mockdock-server:52052 \
+  hllink/mockdock-web:latest
+```
+
+Set a version tag to pin a release:
+
+```bash
+export MOCKDOCK_VERSION=0.1.0
+docker run --rm -p 52000:80 -p 52052:52052 -v "$(pwd)/data:/app/data" "hllink/mockdock:${MOCKDOCK_VERSION}"
+```
+
 ### Docker Compose All-in-One
 
-The Compose file also includes a combined service that runs the web UI and server in one container:
+The Compose file also includes a combined service that runs the web UI and server in one container.
+
+Use the published Docker Hub image:
+
+```bash
+DOCKER_IMAGE_PREFIX=hllink/mockdock MOCKDOCK_VERSION=latest docker compose --profile all-in-one pull mockdock
+DOCKER_IMAGE_PREFIX=hllink/mockdock MOCKDOCK_VERSION=latest docker compose --profile all-in-one up --no-build mockdock
+```
+
+Or build it locally:
 
 ```bash
 docker compose --profile all-in-one up --build mockdock
@@ -106,6 +156,32 @@ Ports are the same:
 The `52000` and `52052` ports are a small nod to the 52-hertz whale, the inspiration behind MockDock's whale identity.
 
 State is stored in `./data/mockdock.sqlite`.
+
+### Build Images Locally
+
+Build the server and web containers from this repository:
+
+```bash
+docker compose up --build
+```
+
+Or build all local images with the helper script:
+
+```bash
+./scripts/docker-build.sh
+```
+
+That creates these local image tags:
+
+- `mockdock-server:latest`
+- `mockdock-web:latest`
+- `mockdock:latest`
+
+You can pass a version tag:
+
+```bash
+./scripts/docker-build.sh 0.1.0
+```
 
 ## Standalone Development
 
