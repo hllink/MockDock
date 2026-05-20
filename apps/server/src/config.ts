@@ -1,5 +1,7 @@
 import path from "node:path";
 
+import { MOCKDOCK_VERSION } from "./app-version.js";
+
 export interface AppConfig {
   databasePath: string;
   host: string;
@@ -14,6 +16,6 @@ export function getConfig(): AppConfig {
     host: process.env.MOCKDOCK_HOST ?? "0.0.0.0",
     port: Number(process.env.MOCKDOCK_PORT ?? 52052),
     bodyLimitBytes: Number(process.env.MOCKDOCK_BODY_LIMIT_BYTES ?? 16 * 1024 * 1024),
-    version: process.env.MOCKDOCK_VERSION ?? "0.1.0"
+    version: process.env.MOCKDOCK_VERSION ?? MOCKDOCK_VERSION
   };
 }

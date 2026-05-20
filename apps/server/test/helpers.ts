@@ -5,6 +5,7 @@ export function createTestConfig(): AppConfig {
     databasePath: ":memory:",
     host: "127.0.0.1",
     port: 0,
-    bodyLimitBytes: 16 * 1024 * 1024
+    bodyLimitBytes: 16 * 1024 * 1024,
+    version: "test-version"
   };
 }

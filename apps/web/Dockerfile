@@ -14,7 +14,8 @@ RUN pnpm install --filter @mockdock/web... --frozen-lockfile=false
 COPY apps/web apps/web
 COPY packages/shared packages/shared
 
-RUN pnpm --filter @mockdock/shared build \
+RUN printf 'export const MOCKDOCK_VERSION = "%s";\n' "$MOCKDOCK_VERSION" > apps/web/src/app/core/app-version.ts \
+  && pnpm --filter @mockdock/shared build \
   && pnpm --dir apps/web build
 
 FROM nginx:1.27-alpine

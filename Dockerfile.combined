@@ -18,7 +18,8 @@ COPY apps/web apps/web
 COPY packages/shared packages/shared
 COPY packages/route-inference packages/route-inference
 
-RUN pnpm --filter @mockdock/shared build \
+RUN printf 'export const MOCKDOCK_VERSION = "%s";\n' "$MOCKDOCK_VERSION" > apps/web/src/app/core/app-version.ts \
+  && pnpm --filter @mockdock/shared build \
   && pnpm --filter @mockdock/route-inference build \
   && pnpm --filter @mockdock/server build \
   && pnpm --dir apps/web build
