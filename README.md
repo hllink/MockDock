@@ -177,9 +177,9 @@ Or build all local images with the helper script:
 
 That creates these local image tags:
 
-- `hllink/mockdock-server:latest`
-- `hllink/mockdock-web:latest`
-- `hllink/mockdock:latest`
+- `mockdock-server:latest`
+- `mockdock-web:latest`
+- `mockdock:latest`
 
 You can pass a version tag:
 
@@ -187,10 +187,10 @@ You can pass a version tag:
 ./scripts/docker-build.sh 0.1.0
 ```
 
-To build unqualified local-only tags instead, set the image prefix:
+To build Docker Hub-style tags instead, set the image prefix:
 
 ```bash
-DOCKER_IMAGE_PREFIX=mockdock ./scripts/docker-build.sh
+DOCKER_IMAGE_PREFIX=hllink/mockdock ./scripts/docker-build.sh
 ```
 
 ## Standalone Development
