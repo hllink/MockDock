@@ -3,6 +3,7 @@ import { computed, signal } from "@angular/core";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { AppComponent } from "./app.component";
+import { MOCKDOCK_VERSION } from "./core/app-version";
 import { DashboardStore } from "./dashboard/dashboard.store";
 
 describe("AppComponent", () => {
@@ -22,6 +23,18 @@ describe("AppComponent", () => {
     component.ngOnInit();
 
     expect(store.initialize).toHaveBeenCalledOnce();
+  });
+
+  it("exposes the build-time app version", () => {
+    const store = createStoreStub();
+
+    TestBed.configureTestingModule({
+      providers: [{ provide: DashboardStore, useValue: store }]
+    });
+
+    const component = TestBed.runInInjectionContext(() => new AppComponent()) as any;
+
+    expect(component.appVersion).toBe(MOCKDOCK_VERSION);
   });
 
   it("mirrors the empty-state visibility from the store", async () => {

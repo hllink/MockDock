@@ -12,6 +12,10 @@ const packageFiles = [
   "packages/shared/package.json",
   "packages/route-inference/package.json"
 ];
+const versionConstantFiles = [
+  "apps/server/src/app-version.ts",
+  "apps/web/src/app/core/app-version.ts"
+];
 
 const command = process.argv[2] ?? "patch";
 const explicitVersion = process.argv[3];
@@ -51,6 +55,11 @@ async function writePackageJson(absolutePath, json) {
   await fs.writeFile(absolutePath, `${JSON.stringify(json, null, 2)}\n`);
 }
 
+async function writeVersionConstant(relativePath, version) {
+  const absolutePath = path.join(rootDir, relativePath);
+  await fs.writeFile(absolutePath, `export const MOCKDOCK_VERSION = "${version}";\n`);
+}
+
 const rootPackage = await readPackageJson("package.json");
 const currentVersion = rootPackage.json.version;
 
@@ -78,6 +87,10 @@ for (const relativePath of packageFiles) {
   const pkg = await readPackageJson(relativePath);
   pkg.json.version = nextVersion;
   await writePackageJson(pkg.absolutePath, pkg.json);
+}
+
+for (const relativePath of versionConstantFiles) {
+  await writeVersionConstant(relativePath, nextVersion);
 }
 
 process.stdout.write(`${nextVersion}\n`);

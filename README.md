@@ -5,6 +5,10 @@
 </p>
 
 <p align="center">
+  <img src="docs/readme-dashboard.webp" alt="MockDock dashboard showing captured routes and response controls" width="900" />
+</p>
+
+<p align="center">
   <strong>Local-first API mocking for developers, QA engineers, and teams that need controllable test traffic.</strong>
 </p>
 
@@ -173,14 +177,20 @@ Or build all local images with the helper script:
 
 That creates these local image tags:
 
-- `mockdock-server:latest`
-- `mockdock-web:latest`
-- `mockdock:latest`
+- `hllink/mockdock-server:latest`
+- `hllink/mockdock-web:latest`
+- `hllink/mockdock:latest`
 
 You can pass a version tag:
 
 ```bash
 ./scripts/docker-build.sh 0.1.0
+```
+
+To build unqualified local-only tags instead, set the image prefix:
+
+```bash
+DOCKER_IMAGE_PREFIX=mockdock ./scripts/docker-build.sh
 ```
 
 ## Standalone Development
@@ -331,7 +341,7 @@ The server supports these environment variables:
 | `MOCKDOCK_PORT` | `52052` | Port used by the mock server. |
 | `MOCKDOCK_DATABASE_PATH` | `data/mockdock.sqlite` | SQLite database path. |
 | `MOCKDOCK_BODY_LIMIT_BYTES` | `16777216` | Maximum request body size. |
-| `MOCKDOCK_VERSION` | `0.0.1` | Version reported by the internal API. |
+| `MOCKDOCK_VERSION` | `0.1.0` | Version reported by the internal API. |
 | `BACKEND_URL` | service-dependent | Backend URL used by the web container proxy. |
 
 ## Repository Layout
@@ -365,6 +375,10 @@ pnpm typecheck
 - TypeScript
 - pnpm workspaces
 - Docker / Docker Compose
+
+## License
+
+MockDock is available under the MIT License. See [LICENSE](LICENSE).
 
 ## Project Status
 

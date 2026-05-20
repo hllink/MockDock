@@ -19,3 +19,28 @@
 .overlay-host.is-fading {
   opacity: 0;
 }
+
+.app-version {
+  position: fixed;
+  left: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 20;
+  margin: 0;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.5rem;
+  background: rgba(11, 17, 32, 0.72);
+  color: rgba(245, 238, 255, 0.72);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.24);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+  backdrop-filter: blur(14px);
+}
+
+@media (max-width: 720px) {
+  .app-version {
+    left: 0.85rem;
+    bottom: 0.85rem;
+  }
+}

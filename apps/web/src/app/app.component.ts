@@ -7,6 +7,7 @@ import {
 } from "./ambient-state/ambient-state.component";
 import { DashboardPageComponent } from "./dashboard/dashboard-page.component";
 import { DashboardStore } from "./dashboard/dashboard.store";
+import { MOCKDOCK_VERSION } from "./core/app-version";
 import { LanguageSwitcherComponent } from "./language-switcher/language-switcher.component";
 
 @Component({
@@ -24,6 +25,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private readonly store = inject(DashboardStore);
 
+  protected readonly appVersion = MOCKDOCK_VERSION;
   protected readonly showEmptyState = computed(() => this.store.isTrafficEmptyStateVisible());
   protected readonly overlayVisible = signal(false);
   protected readonly overlayFading = signal(false);

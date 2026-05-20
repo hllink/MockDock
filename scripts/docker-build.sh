@@ -5,7 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
 VERSION="${1:-$(node scripts/version.mjs current)}"
-PREFIX="${DOCKER_IMAGE_PREFIX:-mockdock}"
+PREFIX="${DOCKER_IMAGE_PREFIX:-hllink/mockdock}"
 
 SERVER_IMAGE="${PREFIX}-server"
 WEB_IMAGE="${PREFIX}-web"

@@ -82,6 +82,19 @@ describe("mock capture", () => {
     expect(workspaces.json()).toHaveLength(0);
   });
 
+  it("reports the configured version", async () => {
+    const app = await buildApp(createTestConfig());
+    apps.push(app);
+
+    const response = await app.inject({
+      method: "GET",
+      url: "/__mockdock/version"
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({ version: "test-version" });
+  });
+
   it("moves a route into another workspace and removes the emptied source workspace", async () => {
     const app = await buildApp(createTestConfig());
     apps.push(app);
