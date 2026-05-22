@@ -17,6 +17,15 @@ import {
   type DashboardPayloadMode,
   type DashboardResponseEditorDraft
 } from "../dashboard.models";
+import {
+  getContentTypeForMode,
+  getPayloadModeForContentType,
+  getStatusToolbarSelectionKey,
+  inferPayloadModeFromResponse,
+  isValidStatusCode,
+  normalizeContentType,
+  type DashboardStatusToolbarSelectionKey
+} from "../response-draft.helpers";
 import { ResponseStatusToolbarComponent } from "./response-status-toolbar.component";
 import { CodeEditorComponent } from "./code-editor.component";
 import type { MockdockResponsePresetDto } from "../../core/mockdock-api.models";
@@ -31,10 +40,8 @@ type StatusSelectionChange = {
   statusCode: number;
 };
 
-type StatusSelectionKey = "2xx" | "3xx" | "4xx" | "5xx" | "custom";
-
 interface EditorDraftState extends DashboardResponseEditorDraft {
-  selectedStatusButtonKey: StatusSelectionKey;
+  selectedStatusButtonKey: DashboardStatusToolbarSelectionKey;
   codeValue: string;
 }
 
@@ -47,13 +54,6 @@ const FALLBACK_CONTENT_TYPE_OPTIONS: readonly ContentTypeOption[] = [
   { label: "application/x-www-form-urlencoded", value: "application/x-www-form-urlencoded" },
   { label: "application/octet-stream", value: "application/octet-stream" }
 ] as const;
-
-const STATUS_TOOLBAR_CODES: Readonly<Record<Exclude<StatusSelectionKey, "custom">, readonly number[]>> = {
-  "2xx": [200, 201, 202, 204],
-  "3xx": [301, 302, 307, 308],
-  "4xx": [400, 401, 403, 404, 409, 422, 429],
-  "5xx": [500, 501, 502, 503, 504]
-} as const;
 
 const DELAY_CHIP_VALUES = [100, 300, 1000, 5000, 10000] as const;
 
@@ -337,7 +337,7 @@ export class ResponseEditorComponent {
     this.updateDraft((current) => ({
       ...current,
       statusCode,
-      selectedStatusButtonKey: this.getStatusToolbarSelectionKey(statusCode)
+      selectedStatusButtonKey: getStatusToolbarSelectionKey(statusCode)
     }));
   }
 
@@ -350,7 +350,7 @@ export class ResponseEditorComponent {
   }
 
   protected setCustomDraftStatusCode(statusCode: number): void {
-    if (!Number.isInteger(statusCode) || statusCode < 100 || statusCode > 599) {
+    if (!isValidStatusCode(statusCode)) {
       return;
     }
 
@@ -363,7 +363,7 @@ export class ResponseEditorComponent {
 
   protected setDraftPayloadMode(payloadMode: DashboardPayloadMode): void {
     this.updateDraft((current) => {
-      const contentType = this.getDefaultContentTypeForMode(payloadMode);
+      const contentType = getContentTypeForMode(payloadMode) ?? "";
       const nextPayload = this.convertPayloadForMode(
         this.getEditableSourcePayload(current),
         payloadMode,
@@ -384,9 +384,9 @@ export class ResponseEditorComponent {
   }
 
   protected setDraftContentType(contentType: string): void {
-    const nextContentType = contentType.trim();
+    const nextContentType = normalizeContentType(contentType) ?? "";
     this.updateDraft((current) => {
-      const payloadMode = this.getPayloadModeForContentType(nextContentType, current.payload);
+      const payloadMode = getPayloadModeForContentType(nextContentType, current.payload);
       const nextPayload = this.convertPayloadForMode(
         this.getEditableSourcePayload(current),
         payloadMode,
@@ -646,104 +646,20 @@ export class ResponseEditorComponent {
       return this.buildEmptyDraft();
     }
 
-    const payloadMode = this.getPayloadModeForPayload(preset.body);
+    const payloadMode = inferPayloadModeFromResponse(preset.body, preset.headers);
     return {
       statusCode: preset.statusCode,
-      selectedStatusButtonKey: this.getStatusToolbarSelectionKey(preset.statusCode),
+      selectedStatusButtonKey: getStatusToolbarSelectionKey(preset.statusCode),
       payloadMode,
-      contentType: preset.headers["content-type"] ?? this.getDefaultContentTypeForMode(payloadMode),
+      contentType: normalizeContentType(preset.headers["content-type"]) ?? getContentTypeForMode(payloadMode) ?? "",
       codeValue: this.payloadToString(preset.body),
       payload: preset.body,
       delayMs: preset.delayMs
     };
   }
 
-  private getStatusToolbarSelectionKey(statusCode: number): StatusSelectionKey {
-    for (const [key, codes] of Object.entries(STATUS_TOOLBAR_CODES) as Array<
-      [Exclude<StatusSelectionKey, "custom">, readonly number[]]
-    >) {
-      if (codes.includes(statusCode)) {
-        return key;
-      }
-    }
-
-    return "custom";
-  }
-
-  private getDefaultContentTypeForMode(payloadMode: DashboardPayloadMode): string {
-    switch (payloadMode) {
-      case "JSON":
-        return "application/json";
-      case "Text":
-        return "text/plain; charset=utf-8";
-      case "XML":
-        return "application/xml";
-      case "Form Data":
-        return "multipart/form-data";
-      case "URL Encoded":
-        return "application/x-www-form-urlencoded";
-      case "Binary":
-        return "application/octet-stream";
-      case "Raw":
-      default:
-        return "";
-    }
-  }
-
-  private getPayloadModeForPayload(payload: ResponsePayloadDto): DashboardPayloadMode {
-    switch (payload.kind) {
-      case "json":
-        return "JSON";
-      case "text":
-        return "Text";
-      case "xml":
-        return "XML";
-      case "formData":
-        return "Form Data";
-      case "urlEncoded":
-        return "URL Encoded";
-      case "binary":
-        return "Binary";
-      case "raw":
-      default:
-        return "Raw";
-    }
-  }
-
   private isCodePayloadMode(payloadMode: DashboardPayloadMode): boolean {
     return payloadMode === "JSON" || payloadMode === "Text" || payloadMode === "XML" || payloadMode === "Raw";
-  }
-
-  private getPayloadModeForContentType(
-    contentType: string,
-    currentPayload: ResponsePayloadDto
-  ): DashboardPayloadMode {
-    const normalized = contentType.toLowerCase();
-    if (!normalized) {
-      return currentPayload.kind === "text" ? "Text" : "Raw";
-    }
-
-    if (normalized.includes("application/json")) {
-      return "JSON";
-    }
-
-    if (normalized.includes("application/xml") || normalized.includes("text/xml")) {
-      return "XML";
-    }
-
-    if (normalized.includes("multipart/form-data")) {
-      return "Form Data";
-    }
-
-    if (normalized.includes("application/x-www-form-urlencoded")) {
-      return "URL Encoded";
-    }
-
-    if (normalized.includes("application/octet-stream")) {
-      return "Binary";
-    }
-
-    return normalized.startsWith("text/") ? "Text" : "Raw";
   }
 
   private convertPayloadForMode(

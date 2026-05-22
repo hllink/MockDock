@@ -34,10 +34,16 @@ import type {
   DashboardWorkspaceGroupView
 } from "./dashboard.models";
 import { DASHBOARD_PAYLOAD_MODES } from "./dashboard.models";
+import {
+  getContentTypeForMode,
+  getStatusToolbarSelectionKey,
+  inferPayloadModeFromResponse,
+  isValidStatusCode,
+  normalizeContentType,
+  type DashboardStatusToolbarSelectionKey
+} from "./response-draft.helpers";
 
-type StatusToolbarSelectionKey = "2xx" | "3xx" | "4xx" | "5xx" | "custom";
 type DashboardContentTypeOption = { label: string; value: string };
-type StatusToolbarFamilyKey = Exclude<StatusToolbarSelectionKey, "custom">;
 
 const DASHBOARD_CONTENT_TYPE_OPTIONS: readonly DashboardContentTypeOption[] = [
   { label: "None", value: "" },
@@ -49,16 +55,9 @@ const DASHBOARD_CONTENT_TYPE_OPTIONS: readonly DashboardContentTypeOption[] = [
   { label: "application/octet-stream", value: "application/octet-stream" }
 ] as const;
 
-const STATUS_TOOLBAR_CODES: Readonly<Record<StatusToolbarFamilyKey, readonly number[]>> = {
-  "2xx": [200, 201, 202, 204],
-  "3xx": [301, 302, 307, 308],
-  "4xx": [400, 401, 403, 404, 409, 422, 429],
-  "5xx": [500, 501, 502, 503, 504]
-} as const;
-
 interface DraftState {
   statusCode: number;
-  selectedStatusButtonKey: StatusToolbarSelectionKey;
+  selectedStatusButtonKey: DashboardStatusToolbarSelectionKey;
   bodyText: string;
   payloadMode: DashboardPayloadMode;
   contentType: string | null;
@@ -629,7 +628,7 @@ export class DashboardStore {
   }
 
   updateDraftStatusCode(statusCode: number): void {
-    const selectedStatusButtonKey = this.getStatusToolbarSelectionKey(statusCode);
+    const selectedStatusButtonKey = getStatusToolbarSelectionKey(statusCode);
     if (selectedStatusButtonKey === "custom") {
       this.setCustomDraftStatusCode(statusCode);
       return;
@@ -638,8 +637,11 @@ export class DashboardStore {
     this.selectDraftStatusCode(statusCode, selectedStatusButtonKey);
   }
 
-  selectDraftStatusCode(statusCode: number, selectedStatusButtonKey: Exclude<StatusToolbarSelectionKey, "custom">): void {
-    if (!this.isValidStatusCode(statusCode)) {
+  selectDraftStatusCode(
+    statusCode: number,
+    selectedStatusButtonKey: Exclude<DashboardStatusToolbarSelectionKey, "custom">
+  ): void {
+    if (!isValidStatusCode(statusCode)) {
       return;
     }
 
@@ -648,7 +650,7 @@ export class DashboardStore {
   }
 
   setCustomDraftStatusCode(statusCode: number): void {
-    if (!this.isValidStatusCode(statusCode)) {
+    if (!isValidStatusCode(statusCode)) {
       return;
     }
 
@@ -690,7 +692,7 @@ export class DashboardStore {
     this.draft.update((current) => ({
       ...current,
       payloadMode,
-      contentType: this.getContentTypeForMode(payloadMode)
+      contentType: getContentTypeForMode(payloadMode)
     }));
     this.queueSaveIfPossible();
   }
@@ -698,7 +700,7 @@ export class DashboardStore {
   setDraftContentType(contentType: string): void {
     this.draft.update((current) => ({
       ...current,
-      contentType: this.normalizeContentType(contentType)
+      contentType: normalizeContentType(contentType)
     }));
     this.queueSaveIfPossible();
   }
@@ -1111,14 +1113,14 @@ export class DashboardStore {
       return;
     }
 
-    const payloadMode = this.inferPayloadMode(preset.body, preset.headers);
+    const payloadMode = inferPayloadModeFromResponse(preset.body, preset.headers);
     this.draft.set({
       statusCode: preset.statusCode,
-      selectedStatusButtonKey: this.getStatusToolbarSelectionKey(preset.statusCode),
+      selectedStatusButtonKey: getStatusToolbarSelectionKey(preset.statusCode),
       bodyText: this.formatBodyText(preset.body),
       payloadMode,
       contentType:
-        this.normalizeContentType(preset.headers["content-type"]) ?? this.getContentTypeForMode(payloadMode)
+        normalizeContentType(preset.headers["content-type"]) ?? getContentTypeForMode(payloadMode)
     });
     this.editorSyncState.set("saved");
   }
@@ -1258,7 +1260,7 @@ export class DashboardStore {
   private buildPresetHeaders(): Record<string, string> {
     const sourcePreset = this.activePreset();
     const headers = { ...(sourcePreset?.headers ?? {}) };
-    const contentType = this.normalizeContentType(this.draftContentType());
+    const contentType = normalizeContentType(this.draftContentType());
 
     return this.applyContentTypeToHeaders(headers, contentType);
   }
@@ -1267,7 +1269,7 @@ export class DashboardStore {
     const sourcePreset = this.activePreset();
     return this.applyContentTypeToHeaders(
       { ...(sourcePreset?.headers ?? {}) },
-      this.normalizeContentType(contentType)
+      normalizeContentType(contentType)
     );
   }
 
@@ -1327,72 +1329,6 @@ export class DashboardStore {
       case "formData":
       case "urlEncoded":
         return "";
-    }
-  }
-
-  private inferPayloadMode(
-    body: ResponsePayloadDto,
-    headers: Record<string, string> = {}
-  ): DashboardPayloadMode {
-    switch (body.kind) {
-      case "json":
-        return "JSON";
-      case "xml":
-        return "XML";
-      case "formData":
-        return "Form Data";
-      case "urlEncoded":
-        return "URL Encoded";
-      case "binary":
-        return "Binary";
-      case "raw":
-        return "Raw";
-      case "text":
-        return "Text";
-    }
-
-    const contentType = headers["content-type"]?.toLowerCase() ?? "";
-
-    if (contentType.includes("application/json")) {
-      return "JSON";
-    }
-
-    if (contentType.includes("application/xml") || contentType.includes("text/xml")) {
-      return "XML";
-    }
-
-    if (contentType.includes("multipart/form-data")) {
-      return "Form Data";
-    }
-
-    if (contentType.includes("application/x-www-form-urlencoded")) {
-      return "URL Encoded";
-    }
-
-    if (contentType.includes("application/octet-stream")) {
-      return "Binary";
-    }
-
-    return contentType ? "Raw" : "Text";
-  }
-
-  private getContentTypeForMode(payloadMode: DashboardPayloadMode): string | null {
-    switch (payloadMode) {
-      case "JSON":
-        return "application/json";
-      case "Text":
-        return "text/plain; charset=utf-8";
-      case "XML":
-        return "application/xml";
-      case "Form Data":
-        return "multipart/form-data";
-      case "URL Encoded":
-        return "application/x-www-form-urlencoded";
-      case "Binary":
-        return "application/octet-stream";
-      case "Raw":
-      default:
-        return null;
     }
   }
 
@@ -1814,18 +1750,8 @@ export class DashboardStore {
     this.selectedVariantKey.set("default");
   }
 
-  private setDraftStatusCode(statusCode: number, selectedStatusButtonKey: StatusToolbarSelectionKey): void {
+  private setDraftStatusCode(statusCode: number, selectedStatusButtonKey: DashboardStatusToolbarSelectionKey): void {
     this.draft.update((current) => ({ ...current, statusCode, selectedStatusButtonKey }));
-  }
-
-  private getStatusToolbarSelectionKey(statusCode: number): StatusToolbarSelectionKey {
-    for (const [key, codes] of Object.entries(STATUS_TOOLBAR_CODES) as [StatusToolbarFamilyKey, readonly number[]][]) {
-      if (codes.includes(statusCode)) {
-        return key;
-      }
-    }
-
-    return "custom";
   }
 
   private formatStatusToolbarLabel(draft: DraftState): string {
@@ -1834,15 +1760,6 @@ export class DashboardStore {
     }
 
     return String(draft.statusCode);
-  }
-
-  private normalizeContentType(contentType: string | null | undefined): string | null {
-    const nextValue = contentType?.trim() ?? "";
-    return nextValue ? nextValue : null;
-  }
-
-  private isValidStatusCode(statusCode: number): boolean {
-    return Number.isInteger(statusCode) && statusCode >= 100 && statusCode <= 599;
   }
 
   private getAllRoutes(): MockdockRouteSummaryDto[] {
